@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maddy — Front Desk Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0f1f3d;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo-star { width: 36px; height: 36px; }
+
+    header h1 { color: #fff; font-size: 1.1rem; font-weight: 700; }
+    header p { color: rgba(255,255,255,0.55); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .back-link {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #fff; }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .avatar {
+      width: 52px; height: 52px;
+      background: #0f1f3d;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .page-title h2 { font-size: 1.5rem; color: #0f1f3d; font-weight: 700; }
+    .page-title .subtitle { font-size: 0.82rem; color: #8896a5; margin-top: 2px; }
+
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .badge {
+      background: #0f1f3d12;
+      color: #0f1f3d;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 24px;
+    }
+
+    .card.full { grid-column: 1 / -1; }
+
+    .card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #8896a5;
+      margin-bottom: 16px;
+    }
+
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 0.88rem;
+      color: #2c3e50;
+      line-height: 1.4;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      content: '○';
+      color: #0f1f3d;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .upload-card { border: 2px dashed #c0392b44; background: #fff5f5; }
+    .upload-card h3 { color: #c0392b; }
+
+    .upload-note {
+      background: #c0392b0f;
+      border-left: 3px solid #c0392b;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: #2c3e50;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .step-list { list-style: none; counter-reset: steps; }
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 0.87rem;
+      color: #2c3e50;
+      line-height: 1.45;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-list li::before {
+      content: counter(steps);
+      background: #c0392b;
+      color: #fff;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .tip-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.82rem;
+      color: #5a6a7a;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .tip-box strong { color: #0f1f3d; }
+
+    .d1-link {
+      display: inline-block;
+      margin-top: 14px;
+      background: #c0392b;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .d1-link:hover { background: #a93226; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <svg class="logo-star" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="21,3 26,15 39,15 29,23 33,36 21,28 9,36 13,23 3,15 16,15" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <div>
+      <h1>Lone Star Command Center</h1>
+      <p>Front Desk Dashboard</p>
+    </div>
+  </div>
+  <a class="back-link" href="/">← Home</a>
+</header>
+
+<main>
+  <div class="page-title">
+    <div class="avatar">📋</div>
+    <div>
+      <h2>Maddy</h2>
+      <div class="subtitle">Front Desk / Clinical Assistant</div>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge">ESTJ-A</span>
+    <span class="badge">Enneagram 2w3</span>
+    <span class="badge">Discipline</span>
+    <span class="badge">Empathy</span>
+    <span class="badge">Developer</span>
+    <span class="badge">Maximizer</span>
+    <span class="badge">Consistency</span>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>Morning Open Checklist</h3>
+      <ul class="checklist">
+        <li>Unlock front door, turn on lights & computers</li>
+        <li>Check voicemail and return any missed calls</li>
+        <li>Pull up schedule and review today's appointments</li>
+        <li>Print or load intake forms for new patients</li>
+        <li>Confirm all Day 1 appointments and send reminders</li>
+        <li>Verify insurance for scheduled patients</li>
+        <li>Restock front desk supplies if needed</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Patient Intake Workflow</h3>
+      <ul class="checklist">
+        <li>Greet patient warmly — use their first name</li>
+        <li>Hand off intake paperwork or iPad for digital forms</li>
+        <li>Scan / photograph completed intake form</li>
+        <li>Enter patient demographics into EHR</li>
+        <li>Collect insurance card front & back</li>
+        <li>Verify coverage before patient is roomed</li>
+        <li>Notify Dr. Stutz when patient is ready</li>
+        <li>Upload intake form to D1 Recon (see below)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Phone Scripts</h3>
+      <ul class="checklist">
+        <li>"Thank you for calling Lone Star Chiropractic — how can I help you today?"</li>
+        <li>For new patients: collect name, DOB, chief complaint, insurance, preferred time</li>
+        <li>For scheduling: confirm date, time, provider, and send a text reminder</li>
+        <li>For billing questions: log the issue, pull the account, escalate to Dr. Stutz if needed</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>End of Day Wrap-Up</h3>
+      <ul class="checklist">
+        <li>Post all charges from today's visits</li>
+        <li>Reconcile end-of-day payments and receipts</li>
+        <li>Confirm tomorrow's schedule is complete</li>
+        <li>Send any outstanding intake reminders</li>
+        <li>Lock up and arm the alarm</li>
+      </ul>
+    </div>
+
+    <div class="card full upload-card">
+      <h3>D1 Recon — Patient Prep Upload</h3>
+      <div class="upload-note">
+        <strong>Your job:</strong> Upload the completed patient intake form to D1 Recon before or immediately after the patient is roomed. This lets Dr. Stutz review it before the consultation.
+      </div>
+      <ol class="step-list">
+        <li>Scan or photograph the completed intake form (PDF preferred, JPG/PNG also accepted)</li>
+        <li>Go to the D1 Recon page using the button below</li>
+        <li>Enter the patient's name in the "Patient Name" field</li>
+        <li>Click "Intake Form (Maddy)" and select the file</li>
+        <li>Wait for the green checkmark — upload complete</li>
+        <li>Let Dr. Stutz know it's uploaded if he's with another patient</li>
+      </ol>
+      <div class="tip-box">
+        <strong>Tip:</strong> Name the file with the patient's last name and date — e.g., <em>Smith_2026-06-30_intake.pdf</em> — so it's easy to find later.
+      </div>
+      <a class="d1-link" href="/d1-recon">Go to D1 Recon →</a>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

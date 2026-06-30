@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sabrina — Reactivation Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0f1f3d;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .logo-star { width: 36px; height: 36px; }
+    header h1 { color: #fff; font-size: 1.1rem; font-weight: 700; }
+    header p { color: rgba(255,255,255,0.55); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .back-link {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #fff; }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .avatar {
+      width: 52px; height: 52px;
+      background: #0f1f3d;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .page-title h2 { font-size: 1.5rem; color: #0f1f3d; font-weight: 700; }
+    .page-title .subtitle { font-size: 0.82rem; color: #8896a5; margin-top: 2px; }
+
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .badge {
+      background: #0f1f3d12;
+      color: #0f1f3d;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 24px;
+    }
+    .card.full { grid-column: 1 / -1; }
+
+    .card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #8896a5;
+      margin-bottom: 16px;
+    }
+
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 0.88rem;
+      color: #2c3e50;
+      line-height: 1.4;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      content: '○';
+      color: #0f1f3d;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .script-block {
+      background: #f8f9fa;
+      border-left: 3px solid #0f1f3d;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      color: #2c3e50;
+      line-height: 1.55;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .script-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #0f1f3d;
+      margin-bottom: 6px;
+      font-style: normal;
+    }
+
+    .upload-card { border: 2px dashed #c0392b44; background: #fff5f5; }
+    .upload-card h3 { color: #c0392b; }
+
+    .upload-note {
+      background: #c0392b0f;
+      border-left: 3px solid #c0392b;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: #2c3e50;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .step-list { list-style: none; counter-reset: steps; }
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 0.87rem;
+      color: #2c3e50;
+      line-height: 1.45;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-list li::before {
+      content: counter(steps);
+      background: #c0392b;
+      color: #fff;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .d1-link {
+      display: inline-block;
+      margin-top: 14px;
+      background: #c0392b;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .d1-link:hover { background: #a93226; }
+
+    .shs-note {
+      background: #fff3cd;
+      border-left: 3px solid #e6a817;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      color: #5a4500;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <svg class="logo-star" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="21,3 26,15 39,15 29,23 33,36 21,28 9,36 13,23 3,15 16,15" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <div>
+      <h1>Lone Star Command Center</h1>
+      <p>Reactivation Dashboard</p>
+    </div>
+  </div>
+  <a class="back-link" href="/">← Home</a>
+</header>
+
+<main>
+  <div class="page-title">
+    <div class="avatar">📞</div>
+    <div>
+      <h2>Sabrina</h2>
+      <div class="subtitle">Office Manager / Reactivation</div>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge">ENFJ</span>
+    <span class="badge">Enneagram 2</span>
+    <span class="badge">Empathy</span>
+    <span class="badge">Relator</span>
+    <span class="badge">Developer</span>
+    <span class="badge">Consistency</span>
+    <span class="badge">Positivity</span>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>Reactivation Outreach — Daily</h3>
+      <ul class="checklist">
+        <li>Pull list of patients inactive 30–90 days from EHR</li>
+        <li>Prioritize patients with open care plans or missed milestones</li>
+        <li>Call 10–15 patients per day — log all attempts</li>
+        <li>Send follow-up text if no answer after 2 calls</li>
+        <li>Offer 3 scheduling options when patient answers</li>
+        <li>Log outcome in EHR: scheduled, no answer, not interested, etc.</li>
+        <li>Update Dr. Stutz on conversion rate weekly</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Reactivation Call Scripts</h3>
+      <div class="script-label">Opening</div>
+      <div class="script-block">
+        "Hi [Name], this is Sabrina calling from Lone Star Chiropractic. I was just thinking about you and wanted to check in — how have you been feeling since your last visit?"
+      </div>
+      <div class="script-label">Re-engage</div>
+      <div class="script-block">
+        "We have some time this week if you'd like to come back in. Dr. Stutz always asks about patients he hasn't seen in a while — you were making great progress."
+      </div>
+      <div class="script-label">Close</div>
+      <div class="script-block">
+        "Can I go ahead and get you on the schedule? I have Tuesday at 10 or Thursday at 2 available."
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Office Management — Weekly</h3>
+      <ul class="checklist">
+        <li>Reconcile accounts receivable and flag any 60+ day balances</li>
+        <li>Review next week's schedule for gaps — fill with reactivation calls</li>
+        <li>Submit insurance claims for previous week's visits</li>
+        <li>Follow up on outstanding claim denials or rejections</li>
+        <li>Check supply inventory — order if below par</li>
+        <li>Update patient satisfaction tracking sheet</li>
+        <li>Review and respond to any Google or Facebook reviews</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Key Metrics to Track</h3>
+      <ul class="checklist">
+        <li>Reactivation call attempts per day (goal: 10–15)</li>
+        <li>Reactivation conversion rate (goal: 20–30%)</li>
+        <li>Patient visit average (PVA) for the week</li>
+        <li>Collection rate: collected vs. billed</li>
+        <li>New patient referral sources — ask every new patient</li>
+        <li>Cancellation & no-show rate (report to Dr. Stutz)</li>
+      </ul>
+    </div>
+
+    <div class="card full upload-card">
+      <h3>D1 Recon — SHS Upload</h3>
+      <div class="upload-note">
+        <strong>Your job:</strong> Upload the Subjective Health Survey (SHS) for Day 1 patients. This is completed before or during the consultation and gives Dr. Stutz key intake data before he reviews the full file.
+      </div>
+      <div class="shs-note">
+        <strong>What is the SHS?</strong> The Subjective Health Survey is the symptom/history questionnaire completed by the patient. It should be scanned or exported as PDF and uploaded here as soon as it's complete.
+      </div>
+      <ol class="step-list">
+        <li>Collect or receive the completed SHS form from the patient (paper or digital)</li>
+        <li>Scan or save as PDF</li>
+        <li>Go to D1 Recon using the button below</li>
+        <li>Enter the patient's name, then find the "SHS (Sabrina)" upload slot</li>
+        <li>Upload the file and confirm the green checkmark appears</li>
+      </ol>
+      <a class="d1-link" href="/d1-recon">Go to D1 Recon →</a>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

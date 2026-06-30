@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lone Star Command Center</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0f1f3d;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+
+    .logo-star {
+      width: 42px;
+      height: 42px;
+    }
+
+    header h1 {
+      color: #ffffff;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8896a5;
+      margin-bottom: 28px;
+    }
+
+    .tiles-row {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .tile {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 36px 28px;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      width: 220px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      border-color: #0f1f3d;
+    }
+
+    .tile-icon {
+      font-size: 2.4rem;
+      margin-bottom: 14px;
+    }
+
+    .tile-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f1f3d;
+      margin-bottom: 6px;
+    }
+
+    .tile-role {
+      font-size: 0.78rem;
+      color: #8896a5;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .tile.d1 {
+      border-color: #c0392b22;
+      background: linear-gradient(135deg, #fff 80%, #fff5f5);
+    }
+
+    .tile.d1:hover {
+      border-color: #c0392b;
+    }
+
+    .tile.d1 .tile-name {
+      color: #c0392b;
+    }
+
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: #0f1f3d22;
+      border-radius: 2px;
+      margin: 0 auto 32px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg class="logo-star" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="21,3 26,15 39,15 29,23 33,36 21,28 9,36 13,23 3,15 16,15" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>
+  </svg>
+  <div>
+    <h1>Lone Star Command Center</h1>
+    <p>Lone Star Chiropractic — Internal Use Only</p>
+  </div>
+</header>
+
+<main>
+  <p class="section-label">Select Your Dashboard</p>
+
+  <div class="tiles-row">
+    <a class="tile" href="/maddy-cc-v2">
+      <div class="tile-icon">📋</div>
+      <div class="tile-name">Maddy</div>
+      <div class="tile-role">Front Desk</div>
+    </a>
+
+    <a class="tile" href="/sabrina-cc-v2">
+      <div class="tile-icon">📞</div>
+      <div class="tile-name">Sabrina</div>
+      <div class="tile-role">Reactivation</div>
+    </a>
+
+    <a class="tile" href="/drstutz-cc-v2">
+      <div class="tile-icon">🩺</div>
+      <div class="tile-name">Dr. Stutz</div>
+      <div class="tile-role">Practice Owner</div>
+    </a>
+  </div>
+
+  <div class="divider"></div>
+  <p class="section-label">Patient Workflow</p>
+
+  <div class="tiles-row">
+    <a class="tile d1" href="/d1-recon">
+      <div class="tile-icon">📁</div>
+      <div class="tile-name">D1 Recon</div>
+      <div class="tile-role">Patient Prep</div>
+    </a>
+  </div>
+</main>
+
+</body>
+</html>
