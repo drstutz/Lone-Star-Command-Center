@@ -352,7 +352,7 @@ rReachoutLog();
 const F15=["SHS Done (D2/PR)","ROF Financials","GR Accountability","Special Occasion Cards","Everything in \"Starting Position\"","Weekly Scorecard"];
 let pF=0;
 function tF15(i){const raw=localStorage.getItem('sabrina_v2');const d=raw?JSON.parse(raw):{};d.state=d.state||{};d.state.f15=d.state.f15||{};d.state.f15[i]=!d.state.f15[i];localStorage.setItem('sabrina_v2',JSON.stringify(d));rF15();}
-function rF15(){const el=document.getElementById('fb');if(!el)return;const raw=localStorage.getItem('sabrina_v2');const st=(raw?JSON.parse(raw):{}).state?.f15||{};el.innerHTML=F15.map((txt,i)=>{const dn=!!st[i];return`<div class="f15i${dn?' done':''}"><div class="f15c"onclick="tF15(${i})"></div><div class="f15t">${txt}</div></div>`;}).join('');const done=Object.values(st).filter(Boolean).length;const fc=document.getElementById('fc');if(fc)fc.textContent=done+'/'+F15.length;}
+function rF15(){const el=document.getElementById('fb');if(!el)return;const raw=localStorage.getItem('sabrina_v2');const st=(raw?JSON.parse(raw):{}).state?.f15||{};const items=["SHS Done (D2/PR)","ROF Financials","GR Accountability","Special Occasion Cards","Everything in \"Starting Position\"","Weekly Scorecard"];el.innerHTML=items.map((txt,i)=>{const dn=!!st[i];return`<div class="f15i${dn?' done':''}"><div class="f15c" onclick="tF15(${i})"></div><div class="f15t">${txt}</div></div>`;}).join('');const done=Object.values(st).filter(Boolean).length;const fc=document.getElementById('fc');if(fc)fc.textContent=done+'/'+items.length;}
 rF15();
 
 // TO-DO
