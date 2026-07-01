@@ -566,7 +566,7 @@ function rSC(){
       </div>
     </div>`;
   });
-  pOT=ot;document.getElementById("sb").innerHTML=h;document.getElementById("ss").textContent=ot+"/"+MX.length+" on track";
+  pOT=ot;const _sb=document.getElementById("sb");if(_sb)_sb.innerHTML=h;const _ss=document.getElementById("ss");if(_ss)_ss.textContent=ot+"/"+MX.length+" on track";
 }
 rSC();
 
@@ -602,17 +602,17 @@ function removePatient(type,i){S.sched[TK][type].splice(i,1);sv(S);rSched();}
 function rSched(){
   ["d1","d2"].forEach(t=>{
     const wrap=document.getElementById(t+"-chips");
-    wrap.innerHTML=S.sched[TK][t].map((n,i)=>
+    if(wrap)wrap.innerHTML=S.sched[TK][t].map((n,i)=>
       `<span class="patient-chip ${t}">${n}<button class="chip-del" onclick="removePatient('${t}',${i})">×</button></span>`
     ).join("");
   });
   const d1=S.sched[TK].d1.length,d2=S.sched[TK].d2.length,total=d1+d2;
-  document.getElementById("sched-count").textContent=total+" patient"+(total!==1?"s":"");
+  const _sc=document.getElementById("sched-count");if(_sc)_sc.textContent=total+" patient"+(total!==1?"s":"");
   let coaching="";
   if(d2>0)coaching+=`<span style="color:#1A7F4B;font-weight:600;">🎯 ${d2} D2 close${d2>1?"s":""} today — your highest-leverage moments.</span> `;
   if(d1>0)coaching+=`<span style="color:#1B2A4A;font-weight:600;">📋 ${d1} D1${d1>1?"s":""} — run the full intake flow, make them feel expected.</span>`;
   if(!coaching)coaching=`<span style="color:var(--muted);">Add today's patients to activate coaching tips.</span>`;
-  document.getElementById("sched-coaching").innerHTML=coaching;
+  const _sch=document.getElementById("sched-coaching");if(_sch)_sch.innerHTML=coaching;
 }
 rSched();
 
@@ -663,19 +663,19 @@ function addNoShow(){
 function deleteNS(i){S.nslog[TK].splice(i,1);sv(S);rNoShow();}
 function rNoShow(){
   const items=S.nslog[TK];
-  document.getElementById("ns-count").textContent=items.length+" today";
+  const _nc=document.getElementById("ns-count");if(_nc)_nc.textContent=items.length+" today";
   const list=document.getElementById("ns-list");
-  if(!items.length){list.innerHTML=`<p style="font-size:11px;color:var(--muted);padding:6px 0;">No no-shows today 🎉</p>`;
-  }else{
-    list.innerHTML=[...items].reverse().map((it,ri)=>{const i=items.length-1-ri;
+  if(list){
+    if(!items.length){list.innerHTML=`<p style="font-size:11px;color:var(--muted);padding:6px 0;">No no-shows today 🎉</p>`;}
+    else{list.innerHTML=[...items].reverse().map((it,ri)=>{const i=items.length-1-ri;
       return`<div class="nslog-item"><div class="nslog-name-d">${it.name}</div><div class="nslog-reason-d">${it.reason}</div><button class="nslog-del" onclick="deleteNS(${i})">×</button></div>`;
-    }).join("");
+    }).join("");}
   }
   // Tally across all days this week
   const allNS=[];Object.values(S.nslog).forEach(day=>allNS.push(...day));
   const tally={};allNS.forEach(it=>{const r=it.reason||"Unknown";tally[r]=(tally[r]||0)+1;});
   const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
-  document.getElementById("ns-tally").innerHTML=sorted.length
+  const _nt=document.getElementById("ns-tally");if(_nt)_nt.innerHTML=sorted.length
     ?sorted.map(([r,c])=>`<span class="reason-tag">${r}: ${c}</span>`).join("")
     :`<span style="font-size:11px;color:var(--muted);">No data yet this week.</span>`;
 }
