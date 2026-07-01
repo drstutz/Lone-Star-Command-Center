@@ -117,6 +117,9 @@ body.eod-mode .card{opacity:.3;transition:opacity .4s;}
 body.eod-mode .card.eod-focus{opacity:1;}
 footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-spacing:.05em;border-top:1px solid var(--border);background:var(--card);transition:background .8s;}
 .flogo{height:22px;opacity:.4;vertical-align:middle;margin-right:6px;}
+
+.ql-btn{display:inline-block;padding:8px 18px;background:#1B2A4A;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;transition:background .2s;cursor:pointer}
+.ql-btn:hover{background:#C8102E}
 </style>
 </head>
 <body>
@@ -146,7 +149,7 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 <main>
 
 <!-- TO-DO -->
-<div class="card s2">
+<div class="card">
   <div class="ch"><span class="ct">✅ Today's To-Do</span><span class="sm" id="tc2"></span></div>
   <div class="cb">
     <div class="tir">
@@ -158,26 +161,11 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 </div>
 
 <!-- FINAL 15 -->
-<div class="card eod-focus s1">
+<div class="card eod-focus s1" style="align-self:start">
   <div class="ch"><span class="ct">🏁 Final 15</span><span class="sm" id="fc"></span></div>
   <div class="cb" id="fb"></div>
 </div>
 
-<!-- GOAL COUNTDOWN -->
-<div class="card">
-  <div class="ch"><span class="ct">&#x23F3; Goal Countdown</span><span class="sm" id="days-left-lbl"></span></div>
-  <div class="cb">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;" id="countdown-grid"></div>
-    <div class="sm" style="margin-bottom:4px;font-weight:600;">Best Time Windows</div>
-    <div class="tbr" id="tbs">
-      <div class="tb" data-s="7" data-e="9"><div class="tbt">7-9AM</div><div class="tbk">GR Prep + Setup</div></div>
-      <div class="tb" data-s="9" data-e="12"><div class="tbt">9-noon</div><div class="tbk">Reactivation Calls</div></div>
-      <div class="tb" data-s="12" data-e="14"><div class="tbt">noon-2</div><div class="tbk">Patient Flow</div></div>
-      <div class="tb" data-s="14" data-e="17"><div class="tbt">2-5PM</div><div class="tbk">Cycle Cadence</div></div>
-      <div class="tb" data-s="17" data-e="21"><div class="tbt">5PM+</div><div class="tbk">Closing Duties</div></div>
-    </div>
-  </div>
-</div>
 
 <!-- REACHOUT LOG -->
 <div class="card" style="grid-row:span 2;">
@@ -249,6 +237,22 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
   </div>
 </div>
 
+
+<!-- QUICK LINKS -->
+<div class="card" style="align-self:start">
+  <div class="ch"><span class="ct">🔗 Quick Links</span></div>
+  <div class="cb" style="display:flex;gap:10px;flex-wrap:wrap;padding:14px">
+    <a href="/maddy-cc-v2.html" class="ql-btn">Maddy’s Board</a>
+    <a href="/drstutz-cc-v2.html" class="ql-btn">Dr. Stutz’s Board</a>
+    <a href="/d1-recon.html" class="ql-btn">D1 Recon</a>
+  </div>
+</div>
+
+<!-- DAD JOKE -->
+<div class="card" style="align-self:start">
+  <div class="ch"><span class="ct">😄 Dad Joke of the Hour</span></div>
+  <div class="cb" style="padding:14px;font-size:15px;line-height:1.5"><div id="djc">Loading…</div></div>
+</div>
 </main>
 
 <footer>
@@ -379,5 +383,21 @@ function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{tr
 setTimeout(rF15,3000);
 </script>
 <script>rF15();setTimeout(rF15,500);try{rTD()}catch(e){}setTimeout(function(){try{rTD()}catch(e){}},500);try{rReachoutLog()}catch(e){}setTimeout(function(){try{rReachoutLog()}catch(e){}},500);</script>
+
+<script>
+(function(){
+var K='sabrina_joke',hr=Math.floor(Date.now()/3600000);
+try{var x=JSON.parse(localStorage.getItem(K));if(x&&x.h===hr){var e=document.getElementById('djc');if(e)e.textContent=x.j;return;}}catch(e2){}
+fetch('https://icanhazdadjoke.com/',{headers:{'Accept':'application/json'}})
+.then(function(r){return r.json();})
+.then(function(d){
+try{localStorage.setItem(K,JSON.stringify({h:hr,j:d.joke}));}catch(e3){}
+var el=document.getElementById('djc');if(el)el.textContent=d.joke;
+}).catch(function(){
+var el=document.getElementById('djc');
+if(el)el.textContent="Why don't scientists trust atoms? Because they make up everything!";
+});
+})();
+</script>
 </body>
 </html>
