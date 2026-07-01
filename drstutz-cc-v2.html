@@ -290,6 +290,17 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
   </div>
 </div>
 
+<!-- QUICK LINKS SIDEBAR -->
+<div class="card" style="grid-row:span 2;">
+  <div class="ch"><span class="ct">🔗 Quick Links</span></div>
+  <div class="cb" style="display:flex;flex-direction:column;gap:8px;">
+    <a href="/maddy-cc-v2" style="display:block;background:var(--a2);color:#fff;text-align:center;border-radius:6px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;">👩 MADDY'S COMMAND CENTER</a>
+    <a href="/sabrina-cc-v2" style="display:block;background:var(--a2);color:#fff;text-align:center;border-radius:6px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;">👩‍💼 SABRINA'S COMMAND CENTER</a>
+    <a href="/d1-recon" style="display:block;background:var(--a1);color:#fff;text-align:center;border-radius:6px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;">📁 D1 RECON HUB</a>
+    <a href="https://nadnplpmgwawuoyggjij.supabase.co" target="_blank" style="display:block;background:#445;color:#fff;text-align:center;border-radius:6px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-decoration:none;">🗄 SUPABASE DATA</a>
+  </div>
+</div>
+
 <!-- EOS ROCKS -->
 <div class="card">
   <div class="ch"><span class="ct">🪨 Q3 EOS Rocks</span><span class="sm">2026 · Q3</span></div>
@@ -332,112 +343,6 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
   </div>
 </div>
 
-<!-- PRACTICE PULSE SIDEBAR (spans 2 rows) -->
-<div class="card" style="grid-row:span 2;">
-  <div class="ch"><span class="ct">💡 Practice Pulse</span><span class="sm" id="pulse-wk"></span></div>
-  <div class="cb">
-    <div class="pulse-stat">
-      <div>
-        <div class="pulse-label">Visits This Week</div>
-        <div style="font-size:10px;color:var(--muted);">Goal: 100/week</div>
-      </div>
-      <div>
-        <div class="pulse-val" id="pv-visits">—</div>
-      </div>
-    </div>
-    <div class="pulse-stat">
-      <div>
-        <div class="pulse-label">New Patients</div>
-        <div style="font-size:10px;color:var(--muted);">Goal: 9/week</div>
-      </div>
-      <div class="cg">
-        <button class="cb2 mn" onclick="chPulse('visits_np',-1,this)">−</button>
-        <div class="cv" id="pv-np" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;min-width:28px;text-align:center;">0</div>
-        <button class="cb2 pl" onclick="chPulse('visits_np',1,this)">+</button>
-      </div>
-    </div>
-    <div class="pulse-stat">
-      <div>
-        <div class="pulse-label">Total Visits</div>
-        <div style="font-size:10px;color:var(--muted);">Goal: 100/week</div>
-      </div>
-      <div class="cg">
-        <button class="cb2 mn" onclick="chPulse('visits_total',-1,this)">−</button>
-        <div class="cv" id="pv-total" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;min-width:28px;text-align:center;">0</div>
-        <button class="cb2 pl" onclick="chPulse('visits_total',1,this)">+</button>
-      </div>
-    </div>
-    <div class="pulse-stat">
-      <div>
-        <div class="pulse-label">Collections</div>
-        <div style="font-size:10px;color:var(--muted);">Goal: $15k/week</div>
-      </div>
-      <div>
-        <div class="pulse-val highlight" id="pv-collect">$—</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-      <div class="sm" style="font-weight:600;margin-bottom:8px;">Quick Links</div>
-      <a href="/d1-recon" style="display:block;background:var(--a1);color:#fff;text-align:center;border-radius:6px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-decoration:none;margin-bottom:6px;">📁 D1 RECON HUB</a>
-      <a href="https://nadnplpmgwawuoyggjij.supabase.co" target="_blank" style="display:block;background:var(--a2);color:#fff;text-align:center;border-radius:6px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-decoration:none;">🗄 SUPABASE DATA</a>
-    </div>
-  </div>
-</div>
-
-<!-- ROW 2: D1 RECON + CLINICAL CHECKLIST + PRIORITY LIST -->
-
-<!-- D1 RECON UPLOAD -->
-<div class="card">
-  <div class="ch"><span class="ct">📁 D1 Recon — Your Uploads</span><span class="sm" id="recon-status">Select patient first</span></div>
-  <div class="cb">
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <input class="sched-input" id="recon-patient" placeholder="Patient name..." style="flex:1;" onkeydown="if(event.key==='Enter')setReconPatient()">
-      <button class="sched-add-btn" onclick="setReconPatient()">Set</button>
-    </div>
-    <div id="recon-patient-display" style="display:none;background:var(--off);border-radius:6px;padding:8px 10px;font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">
-      👤 <span id="recon-name-display">—</span>
-      <button onclick="clearReconPatient()" style="float:right;background:none;border:none;color:var(--a1);font-size:11px;cursor:pointer;font-weight:600;">Change</button>
-    </div>
-    <div class="upload-row">
-      <div><div class="upload-label">🎙️ Consultation Transcript</div><div class="upload-who">Uploaded by you</div></div>
-      <span class="upload-badge sem" id="badge-consult">Pending</span>
-      <button class="upload-btn-sm" onclick="triggerUpload('consult')">Upload</button>
-      <input type="file" id="file-consult" style="display:none" accept=".pdf,.txt,.docx" onchange="handleUpload('consult',this)">
-    </div>
-    <div class="upload-row">
-      <div><div class="upload-label">📋 Exam Form</div><div class="upload-who">Uploaded by you</div></div>
-      <span class="upload-badge sem" id="badge-exam">Pending</span>
-      <button class="upload-btn-sm" onclick="triggerUpload('exam')">Upload</button>
-      <input type="file" id="file-exam" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleUpload('exam',this)">
-    </div>
-    <div class="upload-row">
-      <div><div class="upload-label">🩻 X-rays <span style="color:var(--muted);font-weight:400;">(optional)</span></div><div class="upload-who">Uploaded by you</div></div>
-      <span class="upload-badge sem" id="badge-xray">Optional</span>
-      <button class="upload-btn-sm" style="background:var(--border);color:var(--muted);" onclick="triggerUpload('xray')">Upload</button>
-      <input type="file" id="file-xray" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleUpload('xray',this)">
-    </div>
-    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-      <div class="sm" style="font-weight:600;margin-bottom:6px;">Team Upload Status</div>
-      <div class="upload-row" style="padding:4px 0;">
-        <div><div class="upload-label" style="font-size:11px;">Intake Form (Maddy)</div></div>
-        <span class="upload-badge sem" id="badge-intake">—</span>
-        <button class="upload-btn-sm" style="font-size:10px;padding:3px 8px;" onclick="checkTeamUpload()">Check</button>
-      </div>
-      <div class="upload-row" style="padding:4px 0;">
-        <div><div class="upload-label" style="font-size:11px;">SHS (Sabrina)</div></div>
-        <span class="upload-badge sem" id="badge-shs">—</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CLINICAL WORKFLOW -->
-<div class="card">
-  <div class="ch"><span class="ct">✅ D1 Clinical Checklist</span><span class="sm" id="cl-count">0 done</span></div>
-  <div class="cb" id="cl-body"></div>
-</div>
-
-<!-- PRIORITY TODO -->
 <!-- L10 PREP -->
 <div class="card" style="grid-column:span 2;">
   <div class="ch"><span class="ct">&#x1F4CB; L10 Prep</span><span class="sm" id="l10-next-date">Next: Tuesday</span></div>
@@ -552,8 +457,8 @@ if(!S.checklist[TK])S.checklist[TK]={};
   const d=new Date(WK),end=new Date(d);end.setDate(d.getDate()+6);
   const fmt=dt=>{const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return mo[dt.getMonth()]+" "+dt.getDate();};
   const lbl=fmt(d)+" – "+fmt(end);
-  document.getElementById("wl").textContent=lbl;
-  document.getElementById("pulse-wk").textContent=lbl;
+  const wlEl=document.getElementById("wl");if(wlEl)wlEl.textContent=lbl;
+  const pwEl=document.getElementById("pulse-wk");if(pwEl)pwEl.textContent=lbl;
 })();
 
 // ── SCORECARD ────────────────────────────────────────────────────
@@ -657,38 +562,6 @@ function rPulse(){
   document.getElementById("pv-visits").textContent=tot;
   document.getElementById("pv-collect").textContent="$—";
 }
-rPulse();
-
-// ── CLINICAL CHECKLIST ───────────────────────────────────────────
-const CHECKS=[
-  "Review D1 Recon file (intake + SHS) before entering room",
-  "Conduct consultation — record/dictate transcript",
-  "Complete physical exam — document findings",
-  "Complete orthopedic exam — document findings",
-  "Take X-rays if clinically indicated",
-  "Upload consult transcript + exam form to D1 Recon",
-  "Schedule Day 2 ROF within 24–48 hours",
-  "Complete STFO conversation — confirm care plan commitment",
-  "Prepare Report of Findings for Day 2",
-];
-function rChecklist(){
-  let done=0;
-  const h=CHECKS.map((t,i)=>{
-    const checked=S.checklist[TK][i]||false;
-    if(checked)done++;
-    return`<div class="checklist-item${checked?" done":""}" onclick="toggleCheck(${i})">
-      <div class="check-box">${checked?"✓":""}</div>
-      <div class="check-text">${t}</div>
-    </div>`;
-  }).join("");
-  document.getElementById("cl-body").innerHTML=h;
-  document.getElementById("cl-count").textContent=done+"/"+CHECKS.length+" done";
-  if(done===CHECKS.length)confetti(document.getElementById("cl-count"));
-}
-function toggleCheck(i){
-  S.checklist[TK][i]=!S.checklist[TK][i];sv(S);rChecklist();
-}
-rChecklist();
 
 // ── PRIORITY TODO ────────────────────────────────────────────────
 function addTodo(){const i=document.getElementById("todo-input"),t=i.value.trim();if(!t)return;const undone=S.todos.filter(x=>!x.d);const done=S.todos.filter(x=>x.d);S.todos=[{t,d:false,s:"Today"},...undone,...done];i.value="";sv(S);rTodos();}
