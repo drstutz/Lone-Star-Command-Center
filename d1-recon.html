@@ -1,517 +1,379 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>D1 Recon — Lone Star Command Center</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--navy:#0f1f3d;--red:#c0392b;--bg:#f0f2f5;--card:#ffffff;--border:#e1e5eb;--green:#2e7d32;--muted:#8896a5;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);min-height:100vh;}
-header{background:var(--navy);padding:16px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(0,0,0,.18);}
-header h1{color:#fff;font-size:1.25rem;font-weight:700;letter-spacing:.02em;}
-header p{color:rgba(255,255,255,.55);font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;}
-main{max-width:860px;margin:0 auto;padding:40px 20px;}
-.card{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:28px;margin-bottom:24px;}
-.card-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
-.card-title span.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);}
-/* Patient name bar */
-.patient-bar{display:flex;gap:10px;margin-bottom:24px;align-items:center;}
-.patient-bar input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;outline:none;transition:border-color .15s;}
-.patient-bar input:focus{border-color:var(--navy);}
-.patient-bar button{padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;white-space:nowrap;}
-.patient-bar button:hover{background:#1a3a6a;}
-/* Progress bar */
-.progress-wrap{margin-bottom:20px;}
-.progress-label{font-size:.82rem;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
-.progress-bar{height:8px;background:#e1e5eb;border-radius:4px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--green);border-radius:4px;transition:width .3s;}
-/* Upload slots */
-.slot{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-.slot:last-child{border-bottom:none;}
-.slot-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
-.slot-check.done{border-color:var(--green);background:#e8f5e9;color:var(--green);}
-.slot-info{flex:1;}
-.slot-name{font-size:.95rem;font-weight:600;color:var(--navy);}
-.slot-meta{font-size:.75rem;color:var(--muted);margin-top:2px;}
-.slot-meta .optional{color:#f39c12;font-weight:600;}
-.slot-file{font-size:.75rem;color:var(--green);margin-top:3px;}
-.slot-btn{padding:7px 16px;border-radius:7px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.slot-btn.upload{background:var(--navy);color:#fff;}
-.slot-btn.upload:hover{background:#1a3a6a;}
-.slot-btn.replace{background:#f0f2f5;color:var(--muted);border:1px solid var(--border);}
-.slot-btn.replace:hover{color:var(--navy);border-color:var(--navy);}
-input[type=file]{display:none;}
-/* Status badge */
-.status-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;font-size:.82rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin-bottom:20px;}
-.status-badge.ready{background:#e8f5e9;color:var(--green);}
-.status-badge.pending{background:#fef9e7;color:#b7950b;}
-.status-badge .pulse{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-/* Download button */
-.dl-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .15s;}
-.dl-btn:hover{background:#a93226;}
-.dl-btn:disabled{opacity:.4;cursor:not-allowed;}
-/* Past patients */
-.case-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;}
-.case-card:hover{border-color:var(--navy);box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px);}
-.case-card.active{border-color:var(--navy);background:#f7f9fc;}
-.case-avatar{width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0;}
-.case-info{flex:1;}
-.case-name{font-size:.95rem;font-weight:700;color:var(--navy);}
-.case-date{font-size:.75rem;color:var(--muted);margin-top:2px;}
-.case-status{font-size:.75rem;font-weight:600;}
-.case-status.ready{color:var(--green);}
-.case-status.partial{color:#f39c12;}
-.no-cases{color:var(--muted);font-size:.9rem;text-align:center;padding:20px;}
-/* PDF note */
-.pdf-note{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:.82rem;color:#7b6000;margin-top:12px;display:none;}
-.pdf-note.show{display:block;}
-/* Instructions */
-.instructions{background:#f7f9fc;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-size:.82rem;color:#4a5568;line-height:1.6;}
-.instructions b{color:var(--navy);}
-/* Active case header */
-.active-case-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:gap;gap:10px;}
-.active-case-name{font-size:1.1rem;font-weight:700;color:var(--navy);}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>D1 Recon — Lone Star Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --navy:#0f1f3d;
+      --red:#c0392b;
+      --bg:#f0f2f5;
+      --card:#ffffff;
+      --text:#1a2535;
+      --muted:#8896a5;
+      --green:#27ae60;
+      --green-bg:#f0faf4;
+      --green-border:#27ae6033;
+      --border:#e2e8f0;
+      --radius:14px;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);}
+
+    /* HEADER */
+    header{
+      background:var(--navy);
+      padding:20px 32px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.2);
+    }
+    .logo-wrap{background:#fff;border-radius:10px;padding:4px;display:flex;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.25);}
+    .logo-wrap img{height:42px;width:42px;border-radius:7px;display:block;}
+    .hdr-text h1{color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1.65rem;font-weight:800;letter-spacing:.03em;line-height:1.1;}
+    .hdr-text p{color:rgba(255,255,255,0.45);font-size:0.7rem;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;}
+    .hdr-right{margin-left:auto;}
+    .back-btn{color:rgba(255,255,255,0.65);text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:.06em;text-transform:uppercase;padding:7px 14px;border:1.5px solid rgba(255,255,255,0.2);border-radius:7px;transition:all .15s;display:inline-block;}
+    .back-btn:hover{color:#fff;border-color:rgba(255,255,255,0.55);}
+
+    /* LAYOUT */
+    main{max-width:820px;margin:0 auto;padding:32px 20px 72px;}
+    .section{margin-bottom:32px;}
+    .section-label{font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:0 2px 10px rgba(0,0,0,0.06);padding:26px;}
+
+    /* NEW CASE FORM */
+    .nc-title{font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:800;color:var(--navy);letter-spacing:.04em;text-transform:uppercase;margin-bottom:18px;}
+    .form-row{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+    .field{flex:1;min-width:190px;}
+    .field label{display:block;font-size:0.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+    .field input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:0.95rem;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:border-color .15s;background:#fff;}
+    .field input:focus{border-color:var(--navy);}
+
+    /* BUTTONS */
+    .btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;border:none;cursor:pointer;border-radius:8px;transition:all .15s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;}
+    .btn:disabled{opacity:.55;cursor:not-allowed;}
+    .btn-primary{background:var(--navy);color:#fff;padding:10px 22px;font-size:0.95rem;}
+    .btn-primary:hover:not(:disabled){background:#162d56;}
+    .btn-ghost{background:transparent;color:var(--muted);padding:6px 12px;font-size:0.78rem;border:1.5px solid var(--border);}
+    .btn-ghost:hover{color:var(--text);border-color:#bbb;}
+    .btn-upload{background:var(--navy);color:#fff;padding:7px 15px;font-size:0.78rem;border-radius:7px;white-space:nowrap;flex-shrink:0;}
+    .btn-upload:hover:not(:disabled){background:#162d56;}
+    .btn-replace{background:transparent;color:var(--muted);padding:6px 12px;font-size:0.75rem;border:1.5px solid var(--border);border-radius:7px;white-space:nowrap;flex-shrink:0;}
+    .btn-replace:hover{color:var(--text);border-color:#aaa;}
+    .btn-download{background:var(--red);color:#fff;padding:13px 30px;font-size:1.05rem;border-radius:10px;}
+    .btn-download:hover:not(:disabled){background:#a93226;}
+
+    /* ACTIVE CASE HEADER */
+    .case-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:18px;border-bottom:1.5px solid var(--border);}
+    .case-name{font-family:'Barlow Condensed',sans-serif;font-size:1.55rem;font-weight:800;color:var(--navy);letter-spacing:.02em;}
+    .case-date{font-size:0.78rem;color:var(--muted);margin-top:3px;}
+
+    /* PROGRESS */
+    .progress-wrap{margin-bottom:22px;}
+    .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+    .progress-lbl{font-size:0.8rem;font-weight:600;color:var(--muted);}
+    .progress-opt{font-size:0.7rem;color:var(--muted);}
+    .progress-track{height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden;}
+    .progress-fill{height:100%;background:var(--green);border-radius:4px;transition:width .35s ease;}
+
+    /* SLOTS */
+    .slots{display:flex;flex-direction:column;gap:9px;margin-bottom:22px;}
+    .slot{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--border);border-radius:10px;background:#fafbfc;transition:all .15s;}
+    .slot.done{border-color:var(--green-border);background:var(--green-bg);}
+    .slot-check{width:26px;height:26px;border-radius:50%;border:2px solid #d0d8e4;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:transparent;transition:all .2s;}
+    .slot.done .slot-check{background:var(--green);border-color:var(--green);color:#fff;}
+    .slot-info{flex:1;min-width:0;}
+    .slot-title{font-weight:600;font-size:0.9rem;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+    .badge{font-size:0.62rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:4px;line-height:1.3;}
+    .badge-req{background:#fff0f0;color:var(--red);}
+    .badge-opt{background:#f0f3ff;color:#4a5f8a;}
+    .slot-owner{font-size:0.71rem;color:var(--muted);margin-top:2px;}
+    .slot-file{font-size:0.77rem;color:var(--green);font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;}
+    .slot-ts{font-size:0.67rem;color:var(--muted);margin-top:1px;}
+
+    /* DOWNLOAD */
+    .download-wrap{display:flex;justify-content:center;padding:4px 0 2px;}
+
+    /* PAST CASES */
+    .cases-list{display:flex;flex-direction:column;gap:9px;}
+    .case-card{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 6px rgba(0,0,0,0.05);padding:15px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+    .case-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-1px);}
+    .case-card.is-active{border-color:var(--navy);background:#f5f7ff;}
+    .cc-name{font-weight:700;font-size:0.98rem;color:var(--navy);}
+    .cc-date{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+    .cc-right{margin-left:auto;text-align:right;flex-shrink:0;}
+    .cc-count{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--text);}
+    .cc-badge{font-size:0.67rem;letter-spacing:.06em;font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin-top:5px;display:inline-block;}
+    .badge-ready{background:#e8f8ef;color:#1b7a3f;}
+    .badge-progress{background:#fff8e6;color:#b7650a;}
+    .empty-msg{text-align:center;padding:40px 20px;color:var(--muted);font-size:0.88rem;line-height:1.7;}
+    .loading-msg{text-align:center;padding:28px;color:var(--muted);font-size:0.85rem;}
+    .hidden-file{display:none;}
+  </style>
 </head>
 <body>
 
 <header>
-  <a href="/" style="display:flex;align-items:center;text-decoration:none;flex-shrink:0;">
-    <div style="background:white;border-radius:10px;padding:3px;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);">
-      <img src="/star-logo.png" alt="Home" style="height:48px;width:48px;cursor:pointer;transition:transform .15s;display:block;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
-    </div>
-  </a>
-  <div>
+  <div class="logo-wrap"><img src="/star-logo.png" alt="★"/></div>
+  <div class="hdr-text">
     <h1>D1 Recon</h1>
-    <p>Lone Star Chiropractic — Patient Prep Hub</p>
+    <p>Patient File Hub — Lone Star Chiropractic</p>
+  </div>
+  <div class="hdr-right">
+    <a href="/" class="back-btn">← Command Center</a>
   </div>
 </header>
 
 <main>
 
-<!-- NEW / ACTIVE CASE -->
-<div class="card" id="upload-card">
-  <div class="card-title"><span class="dot"></span>Active Case</div>
+  <!-- SECTION 1: UPLOAD CHECKLIST -->
+  <div class="section">
+    <div class="section-label">Upload Checklist</div>
+    <div class="card">
 
-  <div id="no-case-ui">
-    <p style="font-size:.9rem;color:var(--muted);margin-bottom:14px;">Start a new case by entering the patient's name and clicking New Case.</p>
-    <div class="patient-bar">
-      <input type="text" id="patient-name-input" placeholder="Patient first + last name" onkeydown="if(event.key==='Enter')startCase()"/>
-      <button onclick="startCase()">+ New Case</button>
-    </div>
-  </div>
-
-  <div id="active-case-ui" style="display:none;">
-    <div class="active-case-header">
-      <div>
-        <div class="active-case-name" id="active-case-display"></div>
-        <div style="font-size:.75rem;color:var(--muted);" id="active-case-date"></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <div class="status-badge pending" id="recon-status">
-          <span class="pulse"></span>
-          <span id="recon-status-text">In Progress</span>
+      <!-- New Case Form -->
+      <div id="new-case-form">
+        <div class="nc-title">Start New D1 Recon Case</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Patient Name</label>
+            <input type="text" id="patient-name" placeholder="Last, First" autocomplete="off"/>
+          </div>
+          <div class="field">
+            <label>Appointment Date</label>
+            <input type="date" id="appt-date"/>
+          </div>
         </div>
-        <button class="dl-btn" id="dl-btn" onclick="downloadAllFiles()" disabled>
-          ⬇ Download All Files
-        </button>
+        <button class="btn btn-primary" onclick="createCase()">Create Case →</button>
       </div>
-    </div>
 
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span id="progress-text">0 of 5 files uploaded</span>
-        <span style="font-size:.75rem;color:var(--muted);">X-rays optional</span>
+      <!-- Active Case Checklist -->
+      <div id="active-case" style="display:none">
+
+        <div class="case-hdr">
+          <div>
+            <div class="case-name" id="ac-name">—</div>
+            <div class="case-date" id="ac-date">—</div>
+          </div>
+          <button class="btn btn-ghost" onclick="switchPatient()">Switch Patient</button>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span class="progress-lbl" id="progress-label">0 of 5 files uploaded</span>
+            <span class="progress-opt">X-rays optional</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="slots" id="slots-list"></div>
+
+        <div class="download-wrap" id="download-wrap" style="display:none">
+          <button class="btn btn-download" id="dl-btn" onclick="downloadAll()">📥 Download All Files</button>
+        </div>
+
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-    </div>
-
-    <!-- 5 upload slots -->
-    <div id="slots-container"></div>
-
-    <div class="pdf-note" id="pdf-note">
-      📄 <b>Consultation Prep PDF generated</b> — intake form has been processed. <a href="#" id="pdf-dl-link" style="color:var(--red);font-weight:600;">Download PDF</a>
-    </div>
-
-    <div style="margin-top:20px;" id="phase1-instructions">
-      <div class="instructions">
-        <b>Phase 1 Workflow:</b> Once 4 of 5 files are uploaded, click <b>Download All Files</b> to get a zip.
-        Upload all files to <a href="https://claude.ai" target="_blank" style="color:var(--red);">Claude.ai</a> and type <b>D1 FLIGHT SIMULATOR</b> to run the full analysis.
-        Paste the report back into the case record below.
-      </div>
-    </div>
-
-    <div style="margin-top:16px;">
-      <div class="card-title" style="margin-bottom:10px;"><span class="dot"></span>D1 Recon Report</div>
-      <textarea id="recon-report" placeholder="Paste the D1 Recon Report from Claude here after running analysis..." style="width:100%;min-height:180px;border:2px solid var(--border);border-radius:8px;padding:12px;font-size:.85rem;line-height:1.5;outline:none;resize:vertical;font-family:inherit;" oninput="saveReport(this.value)"></textarea>
-    </div>
-
-    <div style="margin-top:14px;display:flex;gap:10px;">
-      <button onclick="closeCase()" style="padding:9px 18px;background:#f0f2f5;border:1px solid var(--border);border-radius:8px;font-size:.85rem;cursor:pointer;font-weight:600;color:var(--muted);">Save &amp; Close Case</button>
-      <button onclick="newCasePrompt()" style="padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:.85rem;cursor:pointer;font-weight:600;">+ New Case</button>
     </div>
   </div>
-</div>
 
-<!-- PAST PATIENTS -->
-<div class="card">
-  <div class="card-title"><span class="dot"></span>Past Patients</div>
-  <div id="past-cases-list">
-    <div class="no-cases">No past cases yet. Start a new case above.</div>
+  <!-- SECTION 2: PAST PATIENTS -->
+  <div class="section">
+    <div class="section-label">Past Patients</div>
+    <div id="cases-container"><div class="loading-msg">Loading cases…</div></div>
   </div>
-</div>
 
 </main>
 
-<!-- Hidden file inputs -->
-<input type="file" id="file-input-0" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleUpload(0,this)"/>
-<input type="file" id="file-input-1" accept=".pdf,.doc,.docx,.txt" onchange="handleUpload(1,this)"/>
-<input type="file" id="file-input-2" accept=".pdf,.doc,.docx" onchange="handleUpload(2,this)"/>
-<input type="file" id="file-input-3" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleUpload(3,this)"/>
-<input type="file" id="file-input-4" accept=".pdf,.jpg,.jpeg,.png,.dcm" onchange="handleUpload(4,this)"/>
+<!-- Hidden file inputs per slot -->
+<input type="file" id="fi-intake"  class="hidden-file" onchange="handleFileSelect('intake',this)"/>
+<input type="file" id="fi-consult" class="hidden-file" onchange="handleFileSelect('consult',this)"/>
+<input type="file" id="fi-exam"    class="hidden-file" onchange="handleFileSelect('exam',this)"/>
+<input type="file" id="fi-shs"     class="hidden-file" onchange="handleFileSelect('shs',this)"/>
+<input type="file" id="fi-xrays"   class="hidden-file" onchange="handleFileSelect('xrays',this)"/>
 
 <script>
+const SB_URL = 'https://nadnplpmgwawuoyggjij.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hZG5wbHBtZ3dhd3VveWdnamlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDg0NTgsImV4cCI6MjA5NzgyNDQ1OH0.a18I1NPh5T2-bWsCLco_fC31DE6xXhDUdxG2Gqjr9kg';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
 const SLOTS = [
-  {key:'intake',    name:'Intake Form',             owner:'Maddy',     required:true},
-  {key:'consult',   name:'Consultation Transcript',  owner:'Dr. Stutz', required:true},
-  {key:'exam',      name:'Exam Form',                owner:'Dr. Stutz', required:true},
-  {key:'shs',       name:'SHS (Spinal Health Score)', owner:'Sabrina',   required:true},
-  {key:'xrays',     name:'X-rays',                  owner:'Dr. Stutz', required:false},
+  { key:'intake',  label:'Intake Form',               owner:'Maddy',     required:true  },
+  { key:'consult', label:'Consultation Transcript',   owner:'Dr. Stutz', required:true  },
+  { key:'exam',    label:'Exam Form',                 owner:'Dr. Stutz', required:true  },
+  { key:'shs',     label:'SHS (Spinal Health Score)', owner:'Sabrina',   required:true  },
+  { key:'xrays',   label:'X-rays',                   owner:'Dr. Stutz', required:false },
 ];
 
-const DB_KEY = 'd1recon_db';
+let activeCaseId = localStorage.getItem('d1_active_case');
+let caseFiles = {};
 
-function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||{cases:[],active:null};}catch(e){return {cases:[],active:null};}}
-function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
-
-let db = loadDB();
-
-function startCase(){
-  const name = document.getElementById('patient-name-input').value.trim();
-  if(!name){alert('Enter a patient name first.');return;}
-  const c = {id:Date.now()+'',name,created_at:new Date().toISOString(),files:{},report:''};
-  db.cases.unshift(c);
-  db.active = c.id;
-  saveDB(db);
-  render();
+/* INIT */
+async function init() {
+  document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
+  if (activeCaseId) {
+    const { data } = await sb.from('d1_cases').select('*').eq('id', activeCaseId).single();
+    if (data) { await loadActiveCase(data); }
+    else { clearActiveCaseLocal(); showNewCaseForm(); }
+  } else {
+    showNewCaseForm();
+  }
+  await loadPastCases();
 }
 
-function closeCase(){
-  db.active = null;
-  saveDB(db);
-  render();
+/* NEW CASE FORM */
+function showNewCaseForm() {
+  document.getElementById('new-case-form').style.display = '';
+  document.getElementById('active-case').style.display = 'none';
 }
 
-function newCasePrompt(){
-  db.active = null;
-  saveDB(db);
-  render();
-  document.getElementById('patient-name-input').focus();
+async function createCase() {
+  const name = document.getElementById('patient-name').value.trim();
+  const date = document.getElementById('appt-date').value || null;
+  if (!name) { alert('Please enter a patient name.'); return; }
+  const { data, error } = await sb
+    .from('d1_cases')
+    .insert({ patient_name: name, appointment_date: date, status: 'in_progress' })
+    .select().single();
+  if (error) { alert('Error: ' + error.message); return; }
+  activeCaseId = data.id;
+  localStorage.setItem('d1_active_case', activeCaseId);
+  caseFiles = {};
+  await loadActiveCase(data);
+  await loadPastCases();
 }
 
-function openCase(id){
-  db.active = id;
-  saveDB(db);
-  render();
-  document.getElementById('upload-card').scrollIntoView({behavior:'smooth'});
+/* ACTIVE CASE */
+async function loadActiveCase(row) {
+  const { data: files } = await sb.from('d1_files').select('*').eq('case_id', row.id);
+  caseFiles = {};
+  (files || []).forEach(f => { caseFiles[f.slot_key] = f; });
+  document.getElementById('new-case-form').style.display = 'none';
+  document.getElementById('active-case').style.display = '';
+  document.getElementById('ac-name').textContent = row.patient_name;
+  document.getElementById('ac-date').textContent = row.appointment_date
+    ? new Date(row.appointment_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})
+    : 'No date set';
+  renderSlots();
+  updateProgress();
 }
 
-function getActiveCase(){return db.cases.find(c=>c.id===db.active)||null;}
-function getFileCount(c){return Object.keys(c.files||{}).length;}
-function isReady(c){
-  const f=c.files||{};
-  return ['intake','consult','exam','shs'].every(k=>f[k]);
+function renderSlots() {
+  document.getElementById('slots-list').innerHTML = SLOTS.map(s => {
+    const f = caseFiles[s.key];
+    const done = !!f;
+    const ts = done ? new Date(f.uploaded_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+    return `<div class="slot${done?' done':''}" id="slot-${s.key}">
+      <div class="slot-check">${done?'✓':''}</div>
+      <div class="slot-info">
+        <div class="slot-title">${s.label}<span class="badge ${s.required?'badge-req':'badge-opt'}">${s.required?'Required':'Optional'}</span></div>
+        <div class="slot-owner">Usually uploaded by ${s.owner}</div>
+        ${done?`<div class="slot-file">📎 ${esc(f.file_name)}</div><div class="slot-ts">Uploaded ${ts}</div>`:''}
+      </div>
+      <button class="btn ${done?'btn-replace':'btn-upload'}" onclick="triggerUpload('${s.key}')">${done?'Replace':'Upload'}</button>
+    </div>`;
+  }).join('');
 }
 
-function handleUpload(slotIdx, input){
-  const c = getActiveCase(); if(!c)return;
-  const file = input.files[0]; if(!file)return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    const key = SLOTS[slotIdx].key;
-    c.files = c.files||{};
-    c.files[key] = {name:file.name, data:e.target.result, type:file.type, ts:new Date().toISOString()};
-    // Update in db
-    const idx = db.cases.findIndex(x=>x.id===c.id);
-    if(idx>=0)db.cases[idx]=c;
-    saveDB(db);
-    // Intake PDF trigger
-    if(key==='intake')generatePrepPDF(c, file.name);
-    render();
-  };
-  reader.readAsDataURL(file);
+function updateProgress() {
+  const count = Object.keys(caseFiles).length;
+  const ready = count >= 4 || SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length >= 4;
+  document.getElementById('progress-fill').style.width = Math.min(100,Math.round(count/5*100))+'%';
+  document.getElementById('progress-label').textContent = count+' of 5 files uploaded';
+  document.getElementById('download-wrap').style.display = ready ? '' : 'none';
+  if (ready && activeCaseId) sb.from('d1_cases').update({status:'ready'}).eq('id',activeCaseId).then(()=>{});
+}
+
+/* FILE UPLOAD */
+function triggerUpload(key) { document.getElementById('fi-'+key).click(); }
+
+async function handleFileSelect(key, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 25*1024*1024) { alert(`File is ${(file.size/1024/1024).toFixed(1)} MB — please keep files under 25 MB.`); input.value=''; return; }
+  const btn = document.querySelector(`#slot-${key} button`);
+  if (btn) { btn.textContent='Uploading…'; btn.disabled=true; }
+  try {
+    const b64 = await toBase64(file);
+    const existing = caseFiles[key];
+    let res;
+    if (existing) {
+      res = await sb.from('d1_files').update({file_name:file.name,file_data:b64,file_type:file.type,uploaded_at:new Date().toISOString()}).eq('id',existing.id).select().single();
+    } else {
+      res = await sb.from('d1_files').insert({case_id:activeCaseId,slot_key:key,file_name:file.name,file_data:b64,file_type:file.type}).select().single();
+    }
+    if (res.error) throw res.error;
+    caseFiles[key] = res.data;
+    renderSlots();
+    updateProgress();
+    await loadPastCases();
+  } catch(err) {
+    alert('Upload failed: '+err.message);
+    if (btn) { btn.textContent=caseFiles[key]?'Replace':'Upload'; btn.disabled=false; }
+  }
   input.value='';
 }
 
-function saveReport(val){
-  const c=getActiveCase();if(!c)return;
-  c.report=val;
-  const idx=db.cases.findIndex(x=>x.id===c.id);
-  if(idx>=0)db.cases[idx]=c;
-  saveDB(db);
+function toBase64(file) {
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); });
 }
 
-function formatDate(iso){
-  if(!iso)return '';
-  const d=new Date(iso);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-}
-
-function render(){
-  const c = getActiveCase();
-  document.getElementById('no-case-ui').style.display = c?'none':'block';
-  document.getElementById('active-case-ui').style.display = c?'block':'none';
-
-  if(c){
-    document.getElementById('active-case-display').textContent = c.name;
-    document.getElementById('active-case-date').textContent = 'Started ' + formatDate(c.created_at);
-    renderSlots(c);
-    renderStatus(c);
-    // Report
-    const rta = document.getElementById('recon-report');
-    if(rta.value !== (c.report||''))rta.value = c.report||'';
-  }
-
-  renderPastCases();
-}
-
-function renderSlots(c){
-  const files = c.files||{};
-  const container = document.getElementById('slots-container');
-  container.innerHTML = SLOTS.map((slot,i)=>{
-    const f = files[slot.key];
-    const done = !!f;
-    const ts = f?new Date(f.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
-    return `<div class="slot">
-      <div class="slot-check ${done?'done':''}">
-        ${done?'✓':''}</div>
-      <div class="slot-info">
-        <div class="slot-name">${slot.name}</div>
-        <div class="slot-meta">Typically: ${slot.owner} &nbsp;·&nbsp; ${slot.required?'<span>Required</span>':'<span class="optional">Optional</span>'}</div>
-        ${done?`<div class="slot-file">✓ ${f.name} — ${ts}</div>`:''}
-      </div>
-      <button class="slot-btn ${done?'replace':'upload'}" onclick="document.getElementById('file-input-${i}').click()">
-        ${done?'Replace':'Upload'}
-      </button>
-    </div>`;
-  }).join('');
-}
-
-function renderStatus(c){
-  const files = c.files||{};
-  const total = Object.keys(files).length;
-  const required = ['intake','consult','exam','shs'].filter(k=>files[k]).length;
-  const ready = required>=4;
-
-  document.getElementById('progress-text').textContent = total+' of 5 files uploaded';
-  document.getElementById('progress-fill').style.width = (total/5*100)+'%';
-
-  const badge = document.getElementById('recon-status');
-  const txt = document.getElementById('recon-status-text');
-  if(ready){
-    badge.className='status-badge ready';
-    txt.textContent='Ready for Recon';
-  }else{
-    badge.className='status-badge pending';
-    txt.textContent='In Progress';
-  }
-
-  const dlBtn = document.getElementById('dl-btn');
-  dlBtn.disabled = !ready;
-}
-
-function renderPastCases(){
-  const el = document.getElementById('past-cases-list');
-  if(!db.cases.length){
-    el.innerHTML='<div class="no-cases">No past cases yet. Start a new case above.</div>';
-    return;
-  }
-  el.innerHTML = db.cases.map(c=>{
-    const files=c.files||{};
-    const total=Object.keys(files).length;
-    const ready=isReady(c);
-    const isActive=(c.id===db.active);
-    const initials=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<div class="case-card ${isActive?'active':''}" onclick="openCase('${c.id}')">
-      <div class="case-avatar">${initials}</div>
-      <div class="case-info">
-        <div class="case-name">${c.name}</div>
-        <div class="case-date">${formatDate(c.created_at)}</div>
-      </div>
-      <div class="case-status ${ready?'ready':'partial'}">${total} of 5 files${ready?' · Ready for Recon':''}</div>
-    </div>`;
-  }).join('');
-}
-
-// PDF generation on intake upload
-let lastPdfBlob = null;
-function generatePrepPDF(caseObj, fileName){
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
-    const name = caseObj.name;
-    const dateStr = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-
-    // ── PAGE 1: Consultation Questions ───────────────────────────────────────
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(18);
-    doc.setTextColor(15,31,61);
-    doc.text('D1 Recon — Consultation Prep', 20, 22);
-
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(136,150,165);
-    doc.text('Patient: '+name+'   |   '+dateStr+'   |   Lone Star Chiropractic', 20, 30);
-
-    doc.setDrawColor(200,210,220);
-    doc.line(20,33,191,33);
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(12);
-    doc.setTextColor(192,57,43);
-    doc.text('Page 1 — Consultation Questions', 20, 42);
-
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(40,40,40);
-
-    const q = [
-      '1. What brings you in today — describe what you're feeling and where.',
-      '2. When did this start? Was there a specific incident or did it come on gradually?',
-      '3. On a scale of 1–10, how would you rate your pain or discomfort right now?',
-      '4. What makes it better? What makes it worse?',
-      '5. Have you had chiropractic care before? If so, what was your experience?',
-      '6. How is this affecting your daily life — work, sleep, activities?',
-      '7. Have you had any imaging (X-rays, MRI) for this condition?',
-      '8. Are you currently taking any medications for this?',
-      '9. What is your primary goal — pain relief, function, long-term health?',
-      '10. Is there anything else you want me to know before we begin?',
-    ];
-
-    let y = 52;
-    q.forEach(line=>{
-      const wrapped = doc.splitTextToSize(line, 170);
-      doc.text(wrapped, 20, y);
-      y += wrapped.length * 6 + 4;
-    });
-
-    // ── PAGE 2: Ortho Exams + Re-exam Benchmarks ──────────────────────────────
-    doc.addPage();
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(18);
-    doc.setTextColor(15,31,61);
-    doc.text('D1 Recon — Exam &amp; Re-exam Guide', 20, 22);
-
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(136,150,165);
-    doc.text('Patient: '+name+'   |   '+dateStr, 20, 30);
-    doc.line(20,33,191,33);
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(12);
-    doc.setTextColor(192,57,43);
-    doc.text('Front — Recommended Orthopedic Exams', 20, 42);
-
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(40,40,40);
-
-    const exams = [
-      'Cervical: Spurling's, Distraction Test, Shoulder Depression, Cervical ROM',
-      'Thoracic: Kemp's (thoracic), Rib Compression, Thoracic ROM',
-      'Lumbar: Kemp's, SLR (Straight Leg Raise), Valsalva, FABER, Lumbar ROM',
-      'Neurological: DTRs (C5/C6/C7/L4/L5/S1), Dermatomal sensation, Myotome strength',
-      'Postural: Antalgic lean, head forward posture, shoulder/pelvic balance',
-      'Notes: Document baseline measurements — these become re-exam targets.',
-    ];
-
-    let y2 = 52;
-    exams.forEach(line=>{
-      const wrapped = doc.splitTextToSize('• '+line, 170);
-      doc.text(wrapped, 20, y2);
-      y2 += wrapped.length * 6 + 4;
-    });
-
-    // Divider mid-page
-    y2 += 6;
-    doc.setDrawColor(200,57,43);
-    doc.setLineWidth(0.5);
-    doc.line(20, y2, 191, y2);
-    y2 += 10;
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(12);
-    doc.setTextColor(192,57,43);
-    doc.text('Back — Re-exam Benchmark Ideas', 20, y2);
-    y2 += 10;
-
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(40,40,40);
-
-    const benchmarks = [
-      'Pain scale: From ___ to ___ (target: 50%+ reduction)',
-      'Cervical ROM: Flexion _°, Extension _°, Rotation L_° R_° (target: +15°)',
-      'Lumbar ROM: Flexion _°, Extension _°, Side Bend L_° R_° (target: +20°)',
-      'SLR: L___° R___° (target: 70°+ bilateral)',
-      'Strength test: Key myotome (e.g. EHL, knee ext) — note baseline grade',
-      'Functional: Can patient perform ________________ without pain?',
-      'Subjective: Global impression of change at next re-exam',
-    ];
-
-    benchmarks.forEach(line=>{
-      const wrapped = doc.splitTextToSize('• '+line, 170);
-      doc.text(wrapped, 20, y2);
-      y2 += wrapped.length * 6 + 4;
-    });
-
-    const blob = doc.output('blob');
-    lastPdfBlob = blob;
-    const url = URL.createObjectURL(blob);
-    const link = document.getElementById('pdf-dl-link');
-    link.href=url;
-    link.download = name.replace(/\s+/g,'_')+'_D1_Prep.pdf';
-    document.getElementById('pdf-note').classList.add('show');
-  }catch(err){
-    console.error('PDF gen error:',err);
-  }
-}
-
-async function downloadAllFiles(){
-  const c = getActiveCase(); if(!c)return;
-  const files = c.files||{};
-  if(!Object.keys(files).length)return;
-
+/* DOWNLOAD ALL */
+async function downloadAll() {
   const btn = document.getElementById('dl-btn');
-  btn.textContent='⏳ Zipping...'; btn.disabled=true;
-
-  try{
+  btn.textContent='⏳ Preparing zip…'; btn.disabled=true;
+  try {
+    const {data:files,error} = await sb.from('d1_files').select('*').eq('case_id',activeCaseId);
+    if (error) throw error;
+    if (!files||!files.length) { alert('No files uploaded yet.'); return; }
     const zip = new JSZip();
-    for(const [key,f] of Object.entries(files)){
-      // data URL → binary
-      const base64 = f.data.split(',')[1]||f.data;
-      zip.file(f.name, base64, {base64:true});
-    }
+    files.forEach(f=>{ const p=f.file_data.split(','); if(p[1]) zip.file(f.file_name,p[1],{base64:true}); });
     const blob = await zip.generateAsync({type:'blob'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=c.name.replace(/\s+/g,'_')+'_D1_Files.zip';
-    a.click();
-    URL.revokeObjectURL(url);
-  }catch(err){
-    alert('Zip error: '+err.message);
-  }
-  btn.textContent='⬇ Download All Files'; btn.disabled=false;
-  const c2=getActiveCase();if(c2)renderStatus(c2);
+    const name = document.getElementById('ac-name').textContent.replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'_');
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`D1_Recon_${name}.zip`; a.click(); URL.revokeObjectURL(a.href);
+  } catch(err) { alert('Download error: '+err.message); }
+  btn.innerHTML='📥 Download All Files'; btn.disabled=false;
 }
 
-render();
+/* SWITCH PATIENT */
+function switchPatient() {
+  if (!confirm('Switch to a different patient? This case stays in Past Patients.')) return;
+  clearActiveCaseLocal(); showNewCaseForm();
+  document.getElementById('patient-name').value='';
+  document.getElementById('appt-date').value=new Date().toISOString().split('T')[0];
+}
+function clearActiveCaseLocal() { activeCaseId=null; caseFiles={}; localStorage.removeItem('d1_active_case'); }
+
+/* PAST CASES */
+async function loadPastCases() {
+  const el = document.getElementById('cases-container');
+  const {data:cases,error} = await sb.from('d1_cases').select('*,d1_files(slot_key)').order('created_at',{ascending:false});
+  if (error||!cases||!cases.length) { el.innerHTML='<div class="empty-msg">No cases yet.<br>Create a case above to get started.</div>'; return; }
+  el.innerHTML='<div class="cases-list">'+cases.map(c=>{
+    const n=Array.isArray(c.d1_files)?c.d1_files.length:0;
+    const d=c.appointment_date?new Date(c.appointment_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'No date';
+    const ready=n>=4; const cur=c.id===activeCaseId;
+    return `<div class="case-card${cur?' is-active':''}" onclick="openCase('${c.id}')">
+      <div><div class="cc-name">${esc(c.patient_name)}${cur?' <span style="font-size:.7rem;font-family:Inter,sans-serif;font-weight:400;color:var(--muted)">(active)</span>':''}</div><div class="cc-date">${d}</div></div>
+      <div class="cc-right"><div class="cc-count">${n} of 5 files</div><span class="cc-badge ${ready?'badge-ready':'badge-progress'}">${ready?'Ready for Recon':'In Progress'}</span></div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+async function openCase(id) {
+  activeCaseId=id; localStorage.setItem('d1_active_case',id); caseFiles={};
+  const {data}=await sb.from('d1_cases').select('*').eq('id',id).single();
+  if (data) { await loadActiveCase(data); window.scrollTo({top:0,behavior:'smooth'}); await loadPastCases(); }
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
 </script>
 </body>
 </html>
