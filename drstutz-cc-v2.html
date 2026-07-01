@@ -516,7 +516,7 @@ function rSC(){
       </div>
     </div>`;
   });
-  pOT=ot;document.getElementById("sb").innerHTML=h;document.getElementById("ss").textContent=ot+"/"+MX.length+" on track";
+  pOT=ot;const _sb=document.getElementById("sb");if(_sb)_sb.innerHTML=h;const _ss=document.getElementById("ss");if(_ss)_ss.textContent=ot+"/"+MX.length+" on track";
 }
 rSC();
 
