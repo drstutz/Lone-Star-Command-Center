@@ -209,6 +209,10 @@ body.eod-mode header .gbadge{background:#1A4731;}
 
 footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-spacing:.05em;border-top:1px solid var(--border);background:var(--card);transition:background .8s;}
 .flogo{height:22px;opacity:.4;vertical-align:middle;margin-right:6px;}
+.ql-btn{display:flex;align-items:center;gap:9px;padding:11px 14px;margin-bottom:8px;background:var(--navy);color:#fff;border-radius:7px;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.04em;transition:background .15s;}
+.ql-btn:hover{background:var(--red);}
+.ql-btn:last-child{margin-bottom:0;}
+.ql-icon{font-size:18px;}
 </style>
 </head>
 <body>
@@ -230,6 +234,7 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
     <div class="clock">
       <div class="ctime" id="clk">--:--</div>
       <div class="cdate" id="dl">--</div>
+      <div id="wl" style="font-size:10px;color:rgba(255,255,255,.45);text-align:right;margin-top:1px;"></div>
     </div>
   </div>
   
@@ -238,7 +243,7 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 
 <main>
 <!-- TO-DO -->
-<div class="card s3">
+<div class="card s2">
   <div class="ch"><span class="ct">✅ Today's To-Do</span><span class="sm" id="tc2"></span></div>
   <div class="cb">
     <div class="tir">
@@ -246,6 +251,16 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
       <button class="tab" onclick="addTodo()">+</button>
     </div>
     <div id="tl"></div>
+  </div>
+</div>
+
+<!-- QUICK LINKS -->
+<div class="card">
+  <div class="ch"><span class="ct">🔗 Quick Links</span></div>
+  <div class="cb">
+    <a href="/drstutz-cc-v2" class="ql-btn"><span class="ql-icon">🩺</span> Dr. Stutz</a>
+    <a href="/sabrina-cc-v2" class="ql-btn"><span class="ql-icon">💼</span> Sabrina</a>
+    <a href="/d1-recon" class="ql-btn"><span class="ql-icon">🔭</span> D1 Recon</a>
   </div>
 </div>
 
