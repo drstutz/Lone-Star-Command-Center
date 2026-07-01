@@ -459,7 +459,7 @@ function tick(){
 tick();setInterval(tick,20000);
 
 // ── WEEK LABEL ──────────────────────────────────────────────────
-(()=>{const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),mn=new Date(d);mn.setDate(diff);const fr=new Date(mn);fr.setDate(mn.getDate()+4);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];document.getElementById("wl").textContent="Week of "+mo[mn.getMonth()]+" "+mn.getDate()+" – "+mo[fr.getMonth()]+" "+fr.getDate();})();
+(()=>{const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),mn=new Date(d);mn.setDate(diff);const fr=new Date(mn);fr.setDate(mn.getDate()+4);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const _wl=document.getElementById("wl");if(_wl)_wl.textContent="Week of "+mo[mn.getMonth()]+" "+mn.getDate()+" – "+mo[fr.getMonth()]+" "+fr.getDate();})();
 
 // ── STATE ───────────────────────────────────────────────────────
 const SK="maddy_cc_v4";
@@ -538,7 +538,7 @@ function rSC(){
       </div>
     </div>`;
   });
-  pOT=ot;document.getElementById("sb").innerHTML=h;document.getElementById("ss").textContent=ot+"/"+MX.length+" on track";
+  pOT=ot;const _sb=document.getElementById("sb");if(_sb)_sb.innerHTML=h;const _ss=document.getElementById("ss");if(_ss)_ss.textContent=ot+"/"+MX.length+" on track";
 }
 rSC();
 
@@ -574,17 +574,18 @@ function removePatient(type,i){S.sched[TK][type].splice(i,1);sv(S);rSched();}
 function rSched(){
   ["d1","d2"].forEach(t=>{
     const wrap=document.getElementById(t+"-chips");
+    if(!wrap)return;
     wrap.innerHTML=S.sched[TK][t].map((n,i)=>
       `<span class="patient-chip ${t}">${n}<button class="chip-del" onclick="removePatient('${t}',${i})">×</button></span>`
     ).join("");
   });
   const d1=S.sched[TK].d1.length,d2=S.sched[TK].d2.length,total=d1+d2;
-  document.getElementById("sched-count").textContent=total+" patient"+(total!==1?"s":"");
+  const _sc=document.getElementById("sched-count");if(_sc)_sc.textContent=total+" patient"+(total!==1?"s":"");
   let coaching="";
   if(d2>0)coaching+=`<span style="color:#1A7F4B;font-weight:600;">🎯 ${d2} D2 close${d2>1?"s":""} today — your highest-leverage moments.</span> `;
   if(d1>0)coaching+=`<span style="color:#1B2A4A;font-weight:600;">📋 ${d1} D1${d1>1?"s":""} — run the full intake flow, make them feel expected.</span>`;
   if(!coaching)coaching=`<span style="color:var(--muted);">Add today's patients to activate coaching tips.</span>`;
-  document.getElementById("sched-coaching").innerHTML=coaching;
+  const _sco=document.getElementById("sched-coaching");if(_sco)_sco.innerHTML=coaching;
 }
 rSched();
 
@@ -633,8 +634,9 @@ function addNoShow(){
 function deleteNS(i){S.nslog[TK].splice(i,1);sv(S);rNoShow();}
 function rNoShow(){
   const items=S.nslog[TK];
-  document.getElementById("ns-count").textContent=items.length+" today";
+  const _nsc=document.getElementById("ns-count");if(_nsc)_nsc.textContent=items.length+" today";
   const list=document.getElementById("ns-list");
+  if(!list)return;
   if(!items.length){list.innerHTML=`<p style="font-size:11px;color:var(--muted);padding:6px 0;">No no-shows today 🎉</p>`;
   }else{
     list.innerHTML=[...items].reverse().map((it,ri)=>{const i=items.length-1-ri;
