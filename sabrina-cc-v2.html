@@ -326,6 +326,7 @@ function renderSparkline(vals,goal){const mx=Math.max(...vals,goal,1);return val
 function chM(id,d,btn){const m=MX.find(x=>x.id===id);let v=(S[WK][id]||0)+d;v=m.ip?Math.max(0,Math.min(100,v)):Math.max(0,v);S[WK][id]=v;sv(S);const n=MX.filter(m2=>{const v2=S[WK][m2.id]||0;return m2.ip?v2>=m2.g:v2>=m2.g;}).length;if(n>pOT)confetti(btn);pOT=n;rSC();rCountdown();}
 function resetSC(){S[WK]={};sv(S);rSC();rCountdown();}
 function rSC(){let h="",ot=0;MX.forEach(m=>{const v=S[WK][m.id]||0,p=Math.min(100,m.ip?v:Math.round(v/m.g*100)),on=m.ip?v>=m.g:v>=m.g;if(on)ot++;const bc=on?"var(--green)":v===0?"var(--border)":"var(--a1)";const pc=v===0?"sem":on?"son":"soff",pt=v===0?"—":on?"✓ On Track":"↑ Off Track";const dv=m.ip?v+"%":v;const spark=getSparkData(m.id);h+=`<div class="mr"><div style="flex:1"><div class="ml">${m.l}</div><div class="mg">Goal: ${m.gl}</div><div class="pw"><div class="pf" style="width:${p}%;background:${bc}"></div></div><div style="display:flex;align-items:flex-end;gap:1px;height:14px;margin-top:3px;">${renderSparkline(spark,m.g)}<span style="font-size:9px;color:var(--muted);margin-left:3px;">4wk</span></div></div><div class="mright"><div class="cg"><button class="cb2 mn" onclick="chM('${m.id}',${m.ip?-5:-1},this)">−</button><div class="cv">${dv}</div><button class="cb2 pl" onclick="chM('${m.id}',${m.ip?5:1},this)">+</button></div><span class="sp ${pc}">${pt}</span></div></div>`;});pOT=ot;document.getElementById("sb").innerHTML=h;document.getElementById("ss").textContent=ot+"/"+MX.length+" on track";}
+rF15();
 rSC();
 
 // COUNTDOWN
