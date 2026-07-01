@@ -213,6 +213,10 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 .ql-btn:hover{background:var(--red);}
 .ql-btn:last-child{margin-bottom:0;}
 .ql-icon{font-size:18px;}
+.votd-wrap{background:var(--navy);border-color:rgba(184,150,12,.5);text-align:center;padding:14px 32px;}
+.votd-label{font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;margin-bottom:6px;}
+.votd-text{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:#fff;line-height:1.5;font-style:italic;max-width:860px;margin:0 auto 6px;}
+.votd-ref{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.07em;}
 </style>
 </head>
 <body>
@@ -242,6 +246,13 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 <div class="abar"><div class="dot"></div><span id="at">Loading...</span></div>
 
 <main>
+<!-- VERSE OF THE DAY -->
+<div class="card s4 votd-wrap">
+  <div class="votd-label">✝ Verse of the Day</div>
+  <div class="votd-text" id="votd-text"></div>
+  <div class="votd-ref" id="votd-ref"></div>
+</div>
+
 <!-- TO-DO -->
 <div class="card s2">
   <div class="ch"><span class="ct">✅ Today's To-Do</span><span class="sm" id="tc2"></span></div>
@@ -807,52 +818,89 @@ function saveL10(key, val){
     try{
       const d = JSON.parse(localStorage.getItem(L10_KEY)) || {};
       d[key] = val;
-      localStorage.setItem(L10_KEY, JSON.stringify(d));
-      const saved = document.getElementById('l10-'+key+'-saved');
-      if(saved){ saved.classList.add('show'); setTimeout(()=>saved.classList.remove('show'), 2000); }
-    }catch(e){}
-  }, 600);
+        localStorage.setItem(L10_KEY, JSON.stringify(d));
+      }catch(e){}
+    }, 1000);
 }
 loadL10();
 
-// ── HISTORY SNAPSHOT (save week on Sunday) ──────────────────────
+// ── VERSE OF THE DAY ─────────────────────────────────────────────
+const VD=[
+  {t:"For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.",r:"Jeremiah 29:11"},
+  {t:"I can do all things through Christ who strengthens me.",r:"Philippians 4:13"},
+  {t:"The Lord is my shepherd; I shall not want.",r:"Psalm 23:1"},
+  {t:"Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",r:"Proverbs 3:5-6"},
+  {t:"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",r:"Joshua 1:9"},
+  {t:"And we know that in all things God works for the good of those who love him, who have been called according to his purpose.",r:"Romans 8:28"},
+  {t:"The Lord will fight for you; you need only to be still.",r:"Exodus 14:14"},
+  {t:"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.",r:"Philippians 4:6"},
+  {t:"She is clothed with strength and dignity; she can laugh at the days to come.",r:"Proverbs 31:25"},
+  {t:"Come to me, all you who are weary and burdened, and I will give you rest.",r:"Matthew 11:28"},
+  {t:"The joy of the Lord is your strength.",r:"Nehemiah 8:10"},
+  {t:"God is our refuge and strength, an ever-present help in trouble.",r:"Psalm 46:1"},
+  {t:"But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.",r:"Isaiah 40:31"},
+  {t:"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",r:"John 3:16"},
+  {t:"No weapon formed against you shall prosper.",r:"Isaiah 54:17"},
+  {t:"I lift up my eyes to the mountains — where does my help come from? My help comes from the Lord, the Maker of heaven and earth.",r:"Psalm 121:1-2"},
+  {t:"The Lord your God is with you, the Mighty Warrior who saves. He will take great delight in you; in his love he will no longer rebuke you, but will rejoice over you with singing.",r:"Zephaniah 3:17"},
+  {t:"This is the day the Lord has made; let us rejoice and be glad in it.",r:"Psalm 118:24"},
+  {t:"Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",r:"Joshua 1:9"},
+  {t:"Delight yourself in the Lord, and he will give you the desires of your heart.",r:"Psalm 37:4"},
+  {t:"Cast all your anxiety on him because he cares for you.",r:"1 Peter 5:7"},
+  {t:"For I am convinced that neither death nor life, neither angels nor demons, neither the present nor the future, nor any powers, neither height nor depth, nor anything else in all creation, will be able to separate us from the love of God.",r:"Romans 8:38-39"},
+  {t:"Give thanks to the Lord, for he is good; his love endures forever.",r:"Psalm 107:1"},
+  {t:"Your word is a lamp for my feet, a light on my path.",r:"Psalm 119:105"},
+  {t:"Be still, and know that I am God.",r:"Psalm 46:10"},
+  {t:"The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you; the Lord turn his face toward you and give you peace.",r:"Numbers 6:24-26"},
+  {t:"I sought the Lord, and he answered me; he delivered me from all my fears.",r:"Psalm 34:4"},
+  {t:"My grace is sufficient for you, for my power is made perfect in weakness.",r:"2 Corinthians 12:9"},
+  {t:"Fear not, for I am with you; be not dismayed, for I am your God. I will strengthen you, I will help you, I will uphold you with my righteous right hand.",r:"Isaiah 41:10"},
+  {t:"Greater love has no one than this: to lay down one's life for one's friends.",r:"John 15:13"},
+  {t:"Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.",r:"Matthew 5:16"},
+  {t:"I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well.",r:"Psalm 139:14"},
+  {t:"For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.",r:"2 Timothy 1:7"},
+  {t:"Commit to the Lord whatever you do, and he will establish your plans.",r:"Proverbs 16:3"},
+  {t:"The heart of man plans his way, but the Lord establishes his steps.",r:"Proverbs 16:9"},
+  {t:"And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",r:"Philippians 4:7"},
+  {t:"You are the light of the world. A town built on a hill cannot be hidden.",r:"Matthew 5:14"},
+  {t:"In the beginning was the Word, and the Word was with God, and the Word was God.",r:"John 1:1"},
+  {t:"Blessed are the pure in heart, for they will see God.",r:"Matthew 5:8"},
+  {t:"Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.",r:"Matthew 7:7"},
+  {t:"For where two or three gather in my name, there am I with them.",r:"Matthew 18:20"},
+  {t:"The thief comes only to steal and kill and destroy; I have come that they may have life, and have it to the full.",r:"John 10:10"},
+  {t:"I am the vine; you are the branches. If you remain in me and I in you, you will bear much fruit.",r:"John 15:5"},
+  {t:"Do not conform to the pattern of this world, but be transformed by the renewing of your mind.",r:"Romans 12:2"},
+  {t:"If God is for us, who can be against us?",r:"Romans 8:31"},
+  {t:"Now faith is confidence in what we hope for and assurance about what we do not see.",r:"Hebrews 11:1"},
+  {t:"Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up.",r:"Galatians 6:9"},
+  {t:"Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",r:"1 Thessalonians 5:16-18"},
+  {t:"Create in me a pure heart, O God, and renew a steadfast spirit within me.",r:"Psalm 51:10"},
+  {t:"The Lord is close to the brokenhearted and saves those who are crushed in spirit.",r:"Psalm 34:18"},
+  {t:"Even though I walk through the darkest valley, I will fear no evil, for you are with me.",r:"Psalm 23:4"},
+  {t:"Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!",r:"2 Corinthians 5:17"},
+  {t:"Love is patient, love is kind. It does not envy, it does not boast, it is not proud.",r:"1 Corinthians 13:4"},
+  {t:"Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.",r:"Colossians 3:23"},
+  {t:"May the God of hope fill you with all joy and peace as you trust in him.",r:"Romans 15:13"},
+  {t:"He heals the brokenhearted and binds up their wounds.",r:"Psalm 147:3"},
+  {t:"For we live by faith, not by sight.",r:"2 Corinthians 5:7"},
+  {t:"I have hidden your word in my heart that I might not sin against you.",r:"Psalm 119:11"},
+  {t:"Taste and see that the Lord is good; blessed is the one who takes refuge in him.",r:"Psalm 34:8"},
+  {t:"But seek first his kingdom and his righteousness, and all these things will be given to you as well.",r:"Matthew 6:33"},
+  {t:"With man this is impossible, but with God all things are possible.",r:"Matthew 19:26"},
+  {t:"For I am not ashamed of the gospel, because it is the power of God that brings salvation to everyone who believes.",r:"Romans 1:16"},
+  {t:"And my God will meet all your needs according to the riches of his glory in Christ Jesus.",r:"Philippians 4:19"},
+  {t:"The Lord is my light and my salvation — whom shall I fear? The Lord is the stronghold of my life — of whom shall I be afraid?",r:"Psalm 27:1"},
+  {t:"Now to him who is able to do immeasurably more than all we ask or imagine, according to his power that is at work within us.",r:"Ephesians 3:20"},
+  {t:"Humble yourselves, therefore, under God's mighty hand, that he may lift you up in due time.",r:"1 Peter 5:6"}
+];
 (function(){
-  const now=new Date();
-  if(now.getDay()===0&&S[WK]&&Object.keys(S[WK]).length){
-    const existing=S.history.find(h=>h._wk===WK);
-    if(!existing){S.history.push({...S[WK],_wk:WK});if(S.history.length>8)S.history.shift();sv(S);}
-  }
+  const d=new Date(),s=new Date(d.getFullYear(),0,0),day=Math.floor((d-s)/864e5);
+  const v=VD[day%VD.length];
+  const tt=document.getElementById("votd-text");
+  const tr=document.getElementById("votd-ref");
+  if(tt) tt.textContent="“"+v.t+"”";
+  if(tr) tr.textContent="— "+v.r;
 })();
-
-// -- L10 PREP ------------------------------------------------
-(function(){
-  try{
-    const d=JSON.parse(localStorage.getItem('maddy_l10_v1'))||{};
-    ['frog','green','courage'].forEach(k=>{
-      const el=document.getElementById('l10-'+k);
-      if(el&&d[k])el.value=d[k];
-    });
-    const now=new Date(),day=now.getDay();
-    const dtu=day<=2?2-day:9-day;
-    const nt=new Date(now);nt.setDate(now.getDate()+dtu);
-    const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const lbl=document.getElementById('l10-next-date');
-    if(lbl)lbl.textContent=dtu===0?'TODAY':('Next: Tue '+mo[nt.getMonth()]+' '+nt.getDate());
-  }catch(e){}
-})();
-const _l10t={};
-function saveL10(key,val){
-  clearTimeout(_l10t[key]);
-  _l10t[key]=setTimeout(()=>{
-    try{
-      const d=JSON.parse(localStorage.getItem('maddy_l10_v1'))||{};
-      d[key]=val;localStorage.setItem('maddy_l10_v1',JSON.stringify(d));
-      const s=document.getElementById('l10-'+key+'-saved');
-      if(s){s.style.display='block';setTimeout(()=>s.style.display='none',2000);}
-    }catch(e){}
-  },600);
-}
-
 </script>
 </body>
 </html>
