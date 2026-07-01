@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -96,6 +97,17 @@
     .slot-owner{font-size:0.71rem;color:var(--muted);margin-top:2px;}
     .slot-file{font-size:0.77rem;color:var(--green);font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;}
     .slot-ts{font-size:0.67rem;color:var(--muted);margin-top:1px;}
+
+    /* CONSULT PASTE SLOT */
+    .slot-consult{flex-direction:column !important;align-items:stretch !important;}
+    .slot-consult .slot-row{display:flex;align-items:center;gap:14px;}
+    .consult-ta{width:100%;margin-top:12px;min-height:130px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:0.87rem;resize:vertical;line-height:1.55;color:var(--text);background:#fff;outline:none;transition:border-color .15s;}
+    .consult-ta:focus{border-color:var(--navy);}
+    .consult-save-row{display:flex;justify-content:flex-end;margin-top:8px;gap:8px;}
+
+    /* INTAKE PDF TOAST */
+    .pdf-toast{position:fixed;bottom:28px;right:28px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;box-shadow:0 4px 18px rgba(0,0,0,0.22);z-index:999;display:flex;align-items:center;gap:10px;animation:slideUp .25s ease;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
     /* DOWNLOAD */
     .download-wrap{display:flex;justify-content:center;padding:4px 0 2px;}
@@ -190,9 +202,8 @@
 
 </main>
 
-<!-- Hidden file inputs per slot -->
+<!-- Hidden file inputs (consult handled via paste) -->
 <input type="file" id="fi-intake"  class="hidden-file" onchange="handleFileSelect('intake',this)"/>
-<input type="file" id="fi-consult" class="hidden-file" onchange="handleFileSelect('consult',this)"/>
 <input type="file" id="fi-exam"    class="hidden-file" onchange="handleFileSelect('exam',this)"/>
 <input type="file" id="fi-shs"     class="hidden-file" onchange="handleFileSelect('shs',this)"/>
 <input type="file" id="fi-xrays"   class="hidden-file" onchange="handleFileSelect('xrays',this)"/>
@@ -212,6 +223,7 @@ const SLOTS = [
 
 let activeCaseId = localStorage.getItem('d1_active_case');
 let caseFiles = {};
+let consultEditText = null; // null = view/done; string = currently editing
 
 /* INIT */
 async function init() {
@@ -244,6 +256,7 @@ async function createCase() {
   activeCaseId = data.id;
   localStorage.setItem('d1_active_case', activeCaseId);
   caseFiles = {};
+  consultEditText = null;
   await loadActiveCase(data);
   await loadPastCases();
 }
@@ -253,6 +266,7 @@ async function loadActiveCase(row) {
   const { data: files } = await sb.from('d1_files').select('*').eq('case_id', row.id);
   caseFiles = {};
   (files || []).forEach(f => { caseFiles[f.slot_key] = f; });
+  consultEditText = null;
   document.getElementById('new-case-form').style.display = 'none';
   document.getElementById('active-case').style.display = '';
   document.getElementById('ac-name').textContent = row.patient_name;
@@ -263,8 +277,10 @@ async function loadActiveCase(row) {
   updateProgress();
 }
 
+/* ── SLOTS ── */
 function renderSlots() {
   document.getElementById('slots-list').innerHTML = SLOTS.map(s => {
+    if (s.key === 'consult') return renderConsultSlot();
     const f = caseFiles[s.key];
     const done = !!f;
     const ts = done ? new Date(f.uploaded_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
@@ -280,6 +296,30 @@ function renderSlots() {
   }).join('');
 }
 
+function renderConsultSlot() {
+  const f = caseFiles['consult'];
+  const editing = consultEditText !== null;
+  const done = !!f && !editing;
+  const ts = f ? new Date(f.uploaded_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+  return `<div class="slot slot-consult${done?' done':''}" id="slot-consult">
+    <div class="slot-row">
+      <div class="slot-check">${done?'✓':''}</div>
+      <div class="slot-info" style="flex:1">
+        <div class="slot-title">Consultation Transcript<span class="badge badge-req">Required</span></div>
+        <div class="slot-owner">Paste after consultation — Dr. Stutz</div>
+        ${done?`<div class="slot-file">📝 Transcript saved · ${ts}</div>`:''}
+      </div>
+      ${done?`<button class="btn btn-replace" onclick="editTranscript()">Edit</button>`:''}
+    </div>
+    ${!done?`
+    <textarea id="consult-paste" class="consult-ta" placeholder="Paste consultation transcript here…">${editing?esc(consultEditText):''}</textarea>
+    <div class="consult-save-row">
+      ${editing?`<button class="btn btn-ghost" onclick="cancelEditTranscript()">Cancel</button>`:''}
+      <button class="btn btn-upload" id="consult-save-btn" onclick="saveTranscript()">Save Transcript</button>
+    </div>`:''}
+  </div>`;
+}
+
 function updateProgress() {
   const count = Object.keys(caseFiles).length;
   const ready = count >= 4 || SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length >= 4;
@@ -289,8 +329,11 @@ function updateProgress() {
   if (ready && activeCaseId) sb.from('d1_cases').update({status:'ready'}).eq('id',activeCaseId).then(()=>{});
 }
 
-/* FILE UPLOAD */
-function triggerUpload(key) { document.getElementById('fi-'+key).click(); }
+/* ── FILE UPLOAD (non-consult slots) ── */
+function triggerUpload(key) {
+  if (key === 'consult') return; // handled by paste
+  document.getElementById('fi-'+key).click();
+}
 
 async function handleFileSelect(key, input) {
   const file = input.files[0];
@@ -312,6 +355,13 @@ async function handleFileSelect(key, input) {
     renderSlots();
     updateProgress();
     await loadPastCases();
+
+    // Auto-generate consult question PDF after intake upload
+    if (key === 'intake') {
+      const patientName = document.getElementById('ac-name').textContent;
+      const apptDate = document.getElementById('ac-date').textContent;
+      generateConsultPDF(patientName, apptDate);
+    }
   } catch(err) {
     alert('Upload failed: '+err.message);
     if (btn) { btn.textContent=caseFiles[key]?'Replace':'Upload'; btn.disabled=false; }
@@ -323,7 +373,221 @@ function toBase64(file) {
   return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); });
 }
 
-/* DOWNLOAD ALL */
+/* ── CONSULTATION TRANSCRIPT (PASTE) ── */
+async function saveTranscript() {
+  const ta = document.getElementById('consult-paste');
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { alert('Please paste the consultation transcript first.'); return; }
+  const btn = document.getElementById('consult-save-btn');
+  if (btn) { btn.textContent='Saving…'; btn.disabled=true; }
+  try {
+    const dataUrl = textToDataUrl(text);
+    const existing = caseFiles['consult'];
+    let res;
+    if (existing) {
+      res = await sb.from('d1_files').update({
+        file_name:'consultation-transcript.txt',
+        file_data:dataUrl,
+        file_type:'text/plain',
+        uploaded_at:new Date().toISOString()
+      }).eq('id',existing.id).select().single();
+    } else {
+      res = await sb.from('d1_files').insert({
+        case_id:activeCaseId,
+        slot_key:'consult',
+        file_name:'consultation-transcript.txt',
+        file_data:dataUrl,
+        file_type:'text/plain'
+      }).select().single();
+    }
+    if (res.error) throw res.error;
+    caseFiles['consult'] = res.data;
+    consultEditText = null;
+    renderSlots();
+    updateProgress();
+    await loadPastCases();
+  } catch(err) {
+    alert('Save failed: '+err.message);
+    if (btn) { btn.textContent='Save Transcript'; btn.disabled=false; }
+  }
+}
+
+function editTranscript() {
+  const f = caseFiles['consult'];
+  if (!f) return;
+  try {
+    const b64part = f.file_data.split(',')[1] || '';
+    const bytes = Uint8Array.from(atob(b64part), c => c.charCodeAt(0));
+    consultEditText = new TextDecoder().decode(bytes);
+  } catch(e) {
+    consultEditText = '';
+  }
+  renderSlots();
+  const ta = document.getElementById('consult-paste');
+  if (ta) { ta.value = consultEditText; ta.focus(); }
+}
+
+function cancelEditTranscript() {
+  consultEditText = null;
+  renderSlots();
+}
+
+function textToDataUrl(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return 'data:text/plain;base64,' + btoa(binary);
+}
+
+/* ── CONSULTATION QUESTION PDF GENERATOR ── */
+function generateConsultPDF(patientName, apptDateStr) {
+  if (!window.jspdf) { console.warn('jsPDF not loaded'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'letter' });
+
+  const navy = [15, 31, 61];
+  const red  = [192, 57, 43];
+  const muted = [136, 150, 165];
+  const text  = [26, 37, 53];
+  const lineGray = [220, 228, 240];
+
+  // Header bar
+  doc.setFillColor(...navy);
+  doc.rect(0, 0, 215.9, 28, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.setTextColor(255,255,255);
+  doc.text('D1 Consultation Questions', 14, 12);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(200,210,230);
+  doc.text('Lone Star Chiropractic — Confidential', 14, 19);
+
+  // Patient info band
+  doc.setFillColor(240, 242, 245);
+  doc.rect(0, 28, 215.9, 18, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...navy);
+  doc.text('Patient:', 14, 38);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(...text);
+  doc.text(patientName, 36, 38);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...navy);
+  doc.text('Date:', 120, 38);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(...text);
+  doc.text(apptDateStr || new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), 136, 38);
+
+  let y = 56;
+
+  const SECTIONS = [
+    {
+      color: navy,
+      title: 'CHIEF COMPLAINT',
+      qs: [
+        'What brings you in today? What is your primary concern?',
+        'When did this problem first start? Was it sudden or gradual?',
+        'Did anything specific trigger it? (accident, fall, lifting, etc.)',
+        'Have you had this issue before? If so, what happened then?',
+      ]
+    },
+    {
+      color: [10, 80, 160],
+      title: 'PAIN ASSESSMENT',
+      qs: [
+        'On a scale of 0–10, how would you rate your pain right now?',
+        'Describe the pain: sharp / dull / burning / aching / shooting / throbbing?',
+        'Where exactly is the pain? Does it travel or radiate anywhere?',
+        'Is the pain constant, or does it come and go?',
+      ]
+    },
+    {
+      color: [22, 120, 80],
+      title: 'AGGRAVATING & RELIEVING FACTORS',
+      qs: [
+        'What makes the pain worse? (sitting, standing, bending, certain movements?)',
+        'What makes the pain better? (heat, ice, rest, medication?)',
+        'How is your sleep affected? Can you find a comfortable position?',
+        'How does this impact your work or daily activities?',
+      ]
+    },
+    {
+      color: [140, 60, 10],
+      title: 'TREATMENT HISTORY',
+      qs: [
+        'What treatments have you tried so far? (medication, PT, chiro, massage, etc.)',
+        'Have you had imaging done? (X-rays, MRI, CT scan?) What did they show?',
+        'Are you currently taking any medications for this?',
+      ]
+    },
+    {
+      color: red,
+      title: 'GOALS & EXPECTATIONS',
+      qs: [
+        'What does improvement look like for you — what would you like to be able to do?',
+        'Are you looking for pain relief, long-term spinal correction, or both?',
+        'Is there a specific event or timeline you are working toward?',
+        'What concerns or questions do you have about chiropractic care?',
+      ]
+    },
+  ];
+
+  for (const section of SECTIONS) {
+    if (y > 235) { doc.addPage(); y = 16; }
+
+    // Section header
+    doc.setFillColor(...section.color);
+    doc.rect(14, y - 4, 4, 6, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...section.color);
+    doc.text(section.title, 20, y);
+    y += 6;
+
+    for (const q of section.qs) {
+      if (y > 245) { doc.addPage(); y = 16; }
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...text);
+      const lines = doc.splitTextToSize(q, 178);
+      doc.text(lines, 18, y);
+      y += lines.length * 5.2;
+
+      // Answer line
+      doc.setDrawColor(...lineGray);
+      doc.setLineWidth(0.4);
+      doc.line(18, y + 1, 198, y + 1);
+      y += 11;
+    }
+    y += 4;
+  }
+
+  // Footer
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...muted);
+    doc.text(`Page ${i} of ${totalPages}  ·  Lone Star Chiropractic D1 Recon  ·  ${patientName}`, 14, 272);
+  }
+
+  const safeName = patientName.replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'_');
+  doc.save(`ConsultQuestions_${safeName}.pdf`);
+  showToast('📋 Consult question sheet downloaded!');
+}
+
+/* ── TOAST ── */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'pdf-toast';
+  t.innerHTML = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3800);
+}
+
+/* ── DOWNLOAD ALL ── */
 async function downloadAll() {
   const btn = document.getElementById('dl-btn');
   btn.textContent='⏳ Preparing zip…'; btn.disabled=true;
@@ -340,16 +604,16 @@ async function downloadAll() {
   btn.innerHTML='📥 Download All Files'; btn.disabled=false;
 }
 
-/* SWITCH PATIENT */
+/* ── SWITCH PATIENT ── */
 function switchPatient() {
   if (!confirm('Switch to a different patient? This case stays in Past Patients.')) return;
   clearActiveCaseLocal(); showNewCaseForm();
   document.getElementById('patient-name').value='';
   document.getElementById('appt-date').value=new Date().toISOString().split('T')[0];
 }
-function clearActiveCaseLocal() { activeCaseId=null; caseFiles={}; localStorage.removeItem('d1_active_case'); }
+function clearActiveCaseLocal() { activeCaseId=null; caseFiles={}; consultEditText=null; localStorage.removeItem('d1_active_case'); }
 
-/* PAST CASES */
+/* ── PAST CASES ── */
 async function loadPastCases() {
   const el = document.getElementById('cases-container');
   const {data:cases,error} = await sb.from('d1_cases').select('*,d1_files(slot_key)').order('created_at',{ascending:false});
@@ -366,7 +630,7 @@ async function loadPastCases() {
 }
 
 async function openCase(id) {
-  activeCaseId=id; localStorage.setItem('d1_active_case',id); caseFiles={};
+  activeCaseId=id; localStorage.setItem('d1_active_case',id); caseFiles={}; consultEditText=null;
   const {data}=await sb.from('d1_cases').select('*').eq('id',id).single();
   if (data) { await loadActiveCase(data); window.scrollTo({top:0,behavior:'smooth'}); await loadPastCases(); }
 }
