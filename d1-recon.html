@@ -400,134 +400,145 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'mm', format:'letter' });
 
-  const C = { navy:[15,31,61], red:[192,57,43], muted:[136,150,165], text:[26,37,53], line:[220,228,240], bg:[240,242,245], accent:[30,70,150] };
+  // Printer-friendly palette — black ink only
+  const BK=[0,0,0], GY=[100,100,100], LG=[180,180,180];
   const LM=13, RM=202.9, PW=189.9;
+  const dateStr = apptDateStr||new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
   // ══════════════════════════════════════════════
   //  PAGE 1 — CONSULTATION GUIDE
   // ══════════════════════════════════════════════
 
-  // Header bar
-  doc.setFillColor(...C.navy);
-  doc.rect(0,0,215.9,26,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
-  doc.text('D1 CONSULTATION GUIDE',LM,11);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(180,200,230);
-  doc.text('Lone Star Chiropractic  ·  Confidential Clinical Reference',LM,18.5);
+  // Top rule
+  doc.setDrawColor(...BK); doc.setLineWidth(1);
+  doc.line(LM, 10, RM, 10);
 
-  // Patient band
-  doc.setFillColor(...C.bg);
-  doc.rect(0,26,215.9,16,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...C.navy);
-  doc.text('PATIENT',LM,35);
-  doc.setFont('helvetica','normal'); doc.setTextColor(...C.text);
-  doc.text(patientName, LM+22, 35);
-  doc.setFont('helvetica','bold'); doc.setTextColor(...C.navy);
-  doc.text('DATE',118,35);
-  doc.setFont('helvetica','normal'); doc.setTextColor(...C.text);
-  doc.text(apptDateStr||new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),132,35);
+  // Practice + title line
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...BK);
+  doc.text('LONE STAR CHIROPRACTIC', LM, 16);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...GY);
+  doc.text('D1 Consultation Guide  ·  Confidential', RM, 16, {align:'right'});
 
-  let y = 49;
+  // Thin rule
+  doc.setDrawColor(...LG); doc.setLineWidth(0.3);
+  doc.line(LM, 19, RM, 19);
 
-  function p1SectionHeader(title, color) {
-    doc.setFillColor(...color);
-    doc.rect(LM, y-3.5, 3, 5.5, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...color);
-    doc.text(title, LM+5, y);
-    y += 7;
+  // Patient / date row
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...BK);
+  doc.text('PATIENT:', LM, 25);
+  doc.setFont('helvetica','normal');
+  doc.text(patientName, LM+20, 25);
+  doc.setFont('helvetica','bold');
+  doc.text('DATE:', 120, 25);
+  doc.setFont('helvetica','normal');
+  doc.text(dateStr, 132, 25);
+
+  doc.setDrawColor(...LG); doc.setLineWidth(0.3);
+  doc.line(LM, 28, RM, 28);
+
+  let y = 36;
+
+  function p1Section(title) {
+    if (y > 258) return;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...BK);
+    doc.text(title, LM, y);
+    doc.setDrawColor(...BK); doc.setLineWidth(0.4);
+    doc.line(LM, y+1.5, RM, y+1.5);
+    y += 8;
   }
 
   function p1Question(q) {
     if (y > 262) return;
-    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...C.text);
-    const lines = doc.splitTextToSize(q, PW-8);
-    doc.text(lines, LM+3, y);
-    y += lines.length * 5;
-    doc.setDrawColor(...C.line); doc.setLineWidth(0.35);
-    doc.line(LM+3, y+1.5, RM, y+1.5);
-    y += 10;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...BK);
+    const lines = doc.splitTextToSize(q, PW-4);
+    doc.text(lines, LM, y);
+    y += lines.length * 5 + 1;
+    doc.setDrawColor(...LG); doc.setLineWidth(0.3);
+    doc.line(LM, y+2, RM, y+2);
+    y += 9;
   }
 
-  // SECTION A
-  p1SectionHeader('A — CHIEF COMPLAINT', C.navy);
+  p1Section('A — CHIEF COMPLAINT');
   p1Question('What brings you in today? What is your primary concern?');
   p1Question('How long have you had this problem, and how did it start? (sudden, gradual, injury, etc.)');
   p1Question('Have you dealt with this before? What happened then?');
   p1Question('On a scale of 0–10, rate your pain right now. What\'s your average over the past week?');
-  y += 2;
+  y += 3;
 
-  // SECTION B
-  p1SectionHeader('B — PAIN PROFILE', C.accent);
+  p1Section('B — PAIN PROFILE');
   p1Question('Describe the quality: sharp / dull / burning / aching / shooting / throbbing / pressure?');
   p1Question('Where exactly is the pain? Does it travel or radiate anywhere?');
   p1Question('Is it constant, or does it come and go? Any pattern — morning, evening, activity?');
   p1Question('What makes it worse? What makes it better? (positions, movement, heat, ice, rest)');
-  y += 2;
+  y += 3;
 
-  // SECTION C
-  p1SectionHeader('C — FUNCTIONAL IMPACT', [22,110,70]);
+  p1Section('C — FUNCTIONAL IMPACT');
   p1Question('How does this affect your sleep — can you find a comfortable position?');
   p1Question('How much is this impacting your work or daily activities? Rate function 0–10 (not just pain).');
   p1Question('Is there a specific activity, sport, or event you\'re trying to get back to?');
-  y += 2;
+  y += 3;
 
-  // SECTION D
-  p1SectionHeader('D — HISTORY & GOALS', C.red);
+  p1Section('D — HISTORY & GOALS');
   p1Question('What treatments have you tried? (medication, PT, massage, prior chiro, surgery) Did anything help?');
   p1Question('Any prior imaging (X-ray, MRI, CT scan)? What did it show?');
   p1Question('What does improvement look like for you — pain relief, full function, or long-term correction?');
   p1Question('What are your biggest questions or concerns about care?');
 
   // Page 1 footer
-  doc.setFontSize(7); doc.setTextColor(...C.muted);
-  doc.text(`${patientName}  ·  D1 Consultation Guide  ·  Page 1 of 2`, LM, 272);
+  doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 270, RM, 270);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...GY);
+  doc.text(`${patientName}  ·  D1 Consultation Guide  ·  Page 1 of 2`, LM, 275);
 
   // ══════════════════════════════════════════════
   //  PAGE 2 — CLINICAL DECISION SUPPORT
   // ══════════════════════════════════════════════
   doc.addPage();
 
-  // Header bar
-  doc.setFillColor(...C.navy);
-  doc.rect(0,0,215.9,26,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
-  doc.text('CLINICAL DECISION SUPPORT',LM,11);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(180,200,230);
-  doc.text(`${patientName}  ·  Orthopedic Exams  ·  Re-Exam Benchmarks`,LM,18.5);
+  // Top rule + header
+  doc.setDrawColor(...BK); doc.setLineWidth(1); doc.line(LM, 10, RM, 10);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...BK);
+  doc.text('LONE STAR CHIROPRACTIC', LM, 16);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...GY);
+  doc.text('Clinical Decision Support  ·  '+patientName+'  ·  '+dateStr, RM, 16, {align:'right'});
+  doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 19, RM, 19);
 
-  // Divider between columns
+  // Column divider
   const COL2 = 112;
-  doc.setDrawColor(...C.line); doc.setLineWidth(0.5);
-  doc.line(COL2-2, 30, COL2-2, 268);
+  doc.setDrawColor(...LG); doc.setLineWidth(0.4);
+  doc.line(COL2-1, 22, COL2-1, 268);
 
-  // ─── LEFT COLUMN: ORTHOPEDIC EXAM CHECKLIST ───
-  let yL = 36;
+  // Column headers
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...BK);
+  doc.text('ORTHOPEDIC EXAM CHECKLIST', LM, 27);
+  doc.setDrawColor(...BK); doc.setLineWidth(0.4);
+  doc.line(LM, 28.5, COL2-5, 28.5);
+
+  // ─── LEFT COLUMN ───
+  let yL = 35;
   const COL1W = COL2-5-LM;
 
-  function examRegion(title, color, tests) {
+  function examRegion(title, tests) {
     if (yL > 255) return;
-    doc.setFillColor(...color);
-    doc.rect(LM, yL-3, COL1W, 6, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
-    doc.text(title, LM+2, yL+1);
-    yL += 8;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...BK);
+    doc.text(title, LM, yL);
+    doc.setDrawColor(...GY); doc.setLineWidth(0.25);
+    doc.line(LM, yL+1.5, COL2-5, yL+1.5);
+    yL += 7;
     tests.forEach(([name, differential]) => {
       if (yL > 260) return;
-      doc.setFillColor(240,242,245);
-      doc.rect(LM, yL-3, 4, 4.5, 'F');
-      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.text);
-      doc.text(name, LM+6, yL);
-      doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...C.muted);
-      doc.text(differential, LM+6, yL+4);
-      yL += 9.5;
+      // Checkbox
+      doc.setDrawColor(...BK); doc.setLineWidth(0.3);
+      doc.rect(LM, yL-3.2, 3.2, 3.2);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...BK);
+      doc.text(name, LM+5, yL);
+      doc.setFont('helvetica','italic'); doc.setFontSize(6.5); doc.setTextColor(...GY);
+      doc.text(differential, LM+5, yL+3.5);
+      yL += 9;
     });
-    yL += 3;
+    yL += 2;
   }
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...C.navy);
-  doc.text('ORTHOPEDIC EXAM CHECKLIST', LM, 33);
-
-  examRegion('CERVICAL / UPPER EXTREMITY', C.navy, [
+  examRegion('CERVICAL / UPPER EXTREMITY', [
     ['Spurling\'s Test',         'Nerve root compression / foraminal stenosis'],
     ['Cervical Distraction',      'Foraminal stenosis relief'],
     ['Upper Limb Tension (ULTT)', 'Neurodynamic / brachial plexus tension'],
@@ -535,7 +546,7 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
     ['Cervical ROM < 60°',       'Segmental restriction / joint mobility'],
   ]);
 
-  examRegion('LUMBAR / LOWER EXTREMITY', C.accent, [
+  examRegion('LUMBAR / LOWER EXTREMITY', [
     ['SLR / Kemp\'s Test',       'L4–S1 nerve root, disc herniation'],
     ['Valsalva / Bowstring',      'Increased intradiscal pressure / disc'],
     ['FABER / Patrick\'s',       'SI joint dysfunction / hip pathology'],
@@ -543,13 +554,13 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
     ['Slump Test',               'Neurodynamic / lumbar nerve tension'],
   ]);
 
-  examRegion('THORACIC', [80,60,140], [
+  examRegion('THORACIC', [
     ['Adam\'s Forward Bend',     'Scoliosis / rotational deformity'],
     ['Rib Compression',          'Rib dysfunction / stress fracture'],
     ['Prone Segmental Palpation','Thoracic joint restriction / tenderness'],
   ]);
 
-  examRegion('SHOULDER / UPPER EXTREMITY', [180,60,20], [
+  examRegion('SHOULDER / UPPER EXTREMITY', [
     ['Empty Can / Full Can',     'Supraspinatus / rotator cuff integrity'],
     ['Hawkins-Kennedy',          'Subacromial impingement'],
     ['Neer\'s Sign',             'Subacromial impingement'],
@@ -557,78 +568,83 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
     ['Cross-Body Adduction',     'AC joint dysfunction'],
   ]);
 
-  // ─── RIGHT COLUMN: RE-EXAM BENCHMARKS ───
-  let yR = 36;
-  const RX = COL2+2;
+  // ─── RIGHT COLUMN ───
+  let yR = 27;
+  const RX = COL2+3;
   const RW = RM - RX;
 
-  function benchSection(title, color) {
-    doc.setFillColor(...color);
-    doc.rect(RX, yR-3, RW, 5.5, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
-    doc.text(title, RX+2, yR+0.8);
-    yR += 7.5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...BK);
+  doc.text('RE-EXAM BENCHMARKS', RX, yR);
+  doc.setDrawColor(...BK); doc.setLineWidth(0.4);
+  doc.line(RX, yR+1.5, RM, yR+1.5);
+  doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...GY);
+  yR += 7;
+  doc.text('Record today — remeasure at re-exam', RX, yR);
+  yR += 6;
+
+  function benchSection(title) {
+    if (yR > 260) return;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...BK);
+    doc.text(title, RX, yR);
+    doc.setDrawColor(...GY); doc.setLineWidth(0.25);
+    doc.line(RX, yR+1.5, RM, yR+1.5);
+    yR += 7;
   }
-  function benchRow(label, lineLen) {
-    if (yR > 262) return;
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.text);
-    doc.text(label, RX+1, yR);
-    doc.setDrawColor(...C.line); doc.setLineWidth(0.3);
-    doc.line(RX+1+lineLen, yR+0.5, RM, yR+0.5);
+  function benchRow(label) {
+    if (yR > 263) return;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...BK);
+    const tw = doc.getTextWidth(label);
+    doc.text(label, RX, yR);
+    doc.setDrawColor(...LG); doc.setLineWidth(0.3);
+    doc.line(RX+tw+2, yR+0.5, RM, yR+0.5);
     yR += 7;
   }
   function benchCheck(label) {
-    if (yR > 262) return;
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.text);
-    doc.setDrawColor(...C.text); doc.setLineWidth(0.3);
-    doc.rect(RX+1, yR-3.2, 3.5, 3.5);
-    doc.text(label, RX+6, yR);
+    if (yR > 263) return;
+    doc.setDrawColor(...BK); doc.setLineWidth(0.3);
+    doc.rect(RX, yR-3.2, 3.2, 3.2);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...BK);
+    doc.text(label, RX+5, yR);
     yR += 7;
   }
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...C.navy);
-  doc.text('RE-EXAM BENCHMARKS', RX, 33);
-  doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...C.muted);
-  doc.text('Record today — remeasure at re-exam', RX, 37.5);
-  yR = 43;
+  benchSection('RANGE OF MOTION');
+  benchRow('Cx Flexion ___°   Extension ___°');
+  benchRow('Cx Rotation  R ___°   L ___°');
+  benchRow('Cx Lat Flex  R ___°   L ___°');
+  benchRow('Lx Flexion ___°   Extension ___°');
+  yR += 3;
 
-  benchSection('RANGE OF MOTION', C.navy);
-  benchRow('Cx Flexion ___°   Extension ___°', 0);
-  benchRow('Cx Rot R ___°   L ___°', 0);
-  benchRow('Cx Lat Flex R ___°   L ___°', 0);
-  benchRow('Lx Flexion ___°   Extension ___°', 0);
-  yR += 2;
+  benchSection('PAIN SCALE (NRS)');
+  benchRow('Current: ___ / 10');
+  benchRow('Avg past week: ___ / 10');
+  yR += 3;
 
-  benchSection('PAIN SCALE (NRS)', C.accent);
-  benchRow('Current: ___ / 10', 22);
-  benchRow('Avg past week: ___ / 10', 30);
-  yR += 2;
-
-  benchSection('FUNCTIONAL TESTS', [22,110,70]);
-  benchCheck('One-leg balance  R ___s   L ___s');
+  benchSection('FUNCTIONAL TESTS');
+  benchCheck('One-leg balance  R ___ s   L ___ s');
   benchCheck('Heel walk:  Normal  /  Compensated');
   benchCheck('Toe walk:   Normal  /  Compensated');
-  benchCheck('Squat to floor  depth ___  pain ___/10');
+  benchCheck('Squat to floor  depth ___  pain ___ /10');
   benchCheck('Grip strength  R ___  /  L ___');
-  yR += 2;
+  yR += 3;
 
-  benchSection('POSTURE OBSERVATION', [140,60,10]);
-  benchRow('Lateral view:', 20);
-  benchRow('AP view:', 15);
-  benchRow('Antalgic lean: Y / N  Direction:', 40);
-  yR += 2;
+  benchSection('POSTURE OBSERVATION');
+  benchRow('Lateral:');
+  benchRow('AP:');
+  benchRow('Antalgic lean:  Y / N   Dir:');
+  yR += 3;
 
-  benchSection('PATIENT-STATED FUNCTION', C.red);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.text);
-  const fqLines = doc.splitTextToSize('"My ability to [key activity] is ___ / 10"', RW-2);
-  doc.text(fqLines, RX+1, yR); yR += fqLines.length*5+3;
-  doc.text('"Biggest limitation right now:', RX+1, yR); yR += 5;
-  doc.setDrawColor(...C.line); doc.line(RX+1, yR, RM, yR); yR += 6;
-  doc.line(RX+1, yR, RM, yR);
+  benchSection('PATIENT-STATED FUNCTION');
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...BK);
+  doc.text('"Ability to [key activity]:  ___ / 10"', RX, yR); yR += 7;
+  doc.text('"Biggest limitation right now:"', RX, yR); yR += 5;
+  doc.setDrawColor(...LG); doc.line(RX, yR, RM, yR); yR += 6;
+  doc.line(RX, yR, RM, yR);
 
   // Page 2 footer
-  doc.setFontSize(7); doc.setTextColor(...C.muted);
-  doc.text(`${patientName}  ·  Clinical Decision Support  ·  Page 2 of 2`, LM, 272);
+  doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 270, RM, 270);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...GY);
+  doc.text(`${patientName}  ·  Clinical Decision Support  ·  Page 2 of 2`, LM, 275);
 
   // ── STORE IN SUPABASE (no auto-download) ──
   try {
