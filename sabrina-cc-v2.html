@@ -376,7 +376,7 @@ function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{tr
 
 // HISTORY
 (function(){const now=new Date();if(now.getDay()===0&&S[WK]&&Object.keys(S[WK]).length){const existing=S.history.find(h=>h._wk===WK);if(!existing){S.history.push({...S[WK],_wk:WK});if(S.history.length>8)S.history.shift();sv(S);}}})();
-setTimeout(rF15,100);
+setTimeout(rF15,3000);
 </script>
 </body>
 </html>
