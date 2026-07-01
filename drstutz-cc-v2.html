@@ -530,14 +530,14 @@ function removePatient(type,i){S.sched[TK][type].splice(i,1);sv(S);rSched();}
 function rSched(){
   ["d1","d2"].forEach(t=>{
     const wrap=document.getElementById(t+"-chips");
-    wrap.innerHTML=S.sched[TK][t].map((n,i)=>
+    if(wrap)wrap.innerHTML=S.sched[TK][t].map((n,i)=>
       `<span class="patient-chip ${t}">${n}<button class="chip-del" onclick="removePatient('${t}',${i})">×</button></span>`
     ).join("");
   });
   const total=S.sched[TK].d1.length+S.sched[TK].d2.length;
-  document.getElementById("sched-count").textContent=total+" patient"+(total!==1?"s":"");
+  const _sc=document.getElementById("sched-count");if(_sc)_sc.textContent=total+" patient"+(total!==1?"s":"");
   const d1=S.sched[TK].d1.length,d2=S.sched[TK].d2.length;
-  document.getElementById("sched-coaching").textContent=
+  const _sco=document.getElementById("sched-coaching");if(_sco)_sco.textContent=
     d1>0&&d2>0?`${d1} D1${d1>1?"s":""} + ${d2} D2${d2>1?"s":""} today — review D1 files before consultations`:
     d1>0?`${d1} D1${d1>1?"s":""} today — make sure D1 Recon files are ready`:
     d2>0?`${d2} Report${d2>1?"s":""} of Findings today — close those plans`:
