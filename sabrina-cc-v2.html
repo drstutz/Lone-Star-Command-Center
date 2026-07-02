@@ -176,22 +176,6 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
   <div class="cb" id="fb"></div>
 </div>
 
-<!-- GOAL COUNTDOWN -->
-<div class="card">
-  <div class="ch"><span class="ct">&#x23F3; Goal Countdown</span><span class="sm" id="days-left-lbl"></span></div>
-  <div class="cb">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;" id="countdown-grid"></div>
-    <div class="sm" style="margin-bottom:4px;font-weight:600;">Best Time Windows</div>
-    <div class="tbr" id="tbs">
-      <div class="tb" data-s="7" data-e="9"><div class="tbt">7-9AM</div><div class="tbk">GR Prep + Setup</div></div>
-      <div class="tb" data-s="9" data-e="12"><div class="tbt">9-noon</div><div class="tbk">Reactivation Calls</div></div>
-      <div class="tb" data-s="12" data-e="14"><div class="tbt">noon-2</div><div class="tbk">Patient Flow</div></div>
-      <div class="tb" data-s="14" data-e="17"><div class="tbt">2-5PM</div><div class="tbk">Cycle Cadence</div></div>
-      <div class="tb" data-s="17" data-e="21"><div class="tbt">5PM+</div><div class="tbk">Closing Duties</div></div>
-    </div>
-  </div>
-</div>
-
 <!-- REACHOUT LOG -->
 <div class="card" style="grid-row:span 2;">
   <div class="ch"><span class="ct">&#x1F4DE; Reachout Log</span><span class="sm" id="rlog-count"></span></div>
@@ -244,17 +228,6 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 </div>
 
 
-
-<!-- EXPORT -->
-<div class="card">
-  <div class="ch"><span class="ct">&#x1F4BE; Data Backup</span></div>
-  <div class="cb">
-    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Export your week's data or restore from a backup.</p>
-    <button onclick="exportData()" style="width:100%;background:var(--a2);color:#fff;border:none;border-radius:5px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;" onmouseover="this.style.background='var(--a1)'" onmouseout="this.style.background='var(--a2)'">&#x2B07;&#xFE0F; Export This Week</button>
-    <label style="width:100%;display:block;background:var(--off);border:1px solid var(--border);border-radius:5px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--muted);">&#x1F4C2; Import Backup <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
-    <p style="font-size:10px;color:var(--muted);margin-top:8px;" id="backup-status"></p>
-  </div>
-</div>
 
 </main>
 
@@ -336,7 +309,8 @@ function rSC(){let h="",ot=0;MX.forEach(m=>{const v=S[WK][m.id]||0,p=Math.min(10
 rSC();
 
 // COUNTDOWN
-function rCountdown(){const now=new Date(),day=now.getDay(),daysLeft=day===0?0:Math.max(0,5-day),wdl=Math.max(1,daysLeft);document.getElementById("days-left-lbl").textContent=wdl+" workday"+(wdl!==1?"s":"")+" left";const items=MX.filter(m=>!m.ip).map(m=>{const cur=S[WK][m.id]||0,needed=Math.max(0,m.g-cur),perDay=needed>0?Math.ceil(needed/wdl*10)/10:0,ok=cur>=m.g;const label=m.l.replace("Golden Referrals (GRs)","GRs").replace("Reactivation Reachouts","Reachouts").replace("Cycle Cadence Compliance","Cycle Cad.").replace("Social Media Posts","Social Posts");return`<div class="cd-item"><div class="cd-label">${label}</div><div class="cd-val ${ok?"cd-ok":perDay>3?"cd-urgent":""}">${ok?"✓ Done":perDay+"/day"}</div><div class="cd-sub">${ok?"Goal met!":needed+" more needed"}</div></div>`;});document.getElementById("countdown-grid").innerHTML=items.join("");}
+function rCountdown(){
+  if(!document.getElementById("days-left-lbl"))return;const now=new Date(),day=now.getDay(),daysLeft=day===0?0:Math.max(0,5-day),wdl=Math.max(1,daysLeft);document.getElementById("days-left-lbl").textContent=wdl+" workday"+(wdl!==1?"s":"")+" left";const items=MX.filter(m=>!m.ip).map(m=>{const cur=S[WK][m.id]||0,needed=Math.max(0,m.g-cur),perDay=needed>0?Math.ceil(needed/wdl*10)/10:0,ok=cur>=m.g;const label=m.l.replace("Golden Referrals (GRs)","GRs").replace("Reactivation Reachouts","Reachouts").replace("Cycle Cadence Compliance","Cycle Cad.").replace("Social Media Posts","Social Posts");return`<div class="cd-item"><div class="cd-label">${label}</div><div class="cd-val ${ok?"cd-ok":perDay>3?"cd-urgent":""}">${ok?"✓ Done":perDay+"/day"}</div><div class="cd-sub">${ok?"Goal met!":needed+" more needed"}</div></div>`;});document.getElementById("countdown-grid").innerHTML=items.join("");}
 rCountdown();
 
 // PRIORITIES
@@ -372,8 +346,8 @@ let tdDrag=null;
 function rTD(){const dn=S.todos.filter(t=>t.d).length;document.getElementById("tc2").textContent=dn+"/"+S.todos.length+" done";const el=document.getElementById("tl");el.innerHTML=S.todos.map((t,i)=>`<div class="ti2 ${t.d?"done":""}" draggable="true" data-i="${i}" ondragstart="tdDrag=${i}" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(tdDrag!==null&&tdDrag!==${i}){const a=S.todos.splice(tdDrag,1)[0];S.todos.splice(${i},0,a);tdDrag=null;sv(S);rTD()}"><span class="tdrag">⣿</span><div class="tck2" onclick="event.stopPropagation();tTD(${i},this)"></div><div style="flex:1"><div class="tt">${t.t}</div>${t.s?`<span class="tsrc">${t.s}</span>`:""}</div><button class="tdel" onclick="event.stopPropagation();dTD(${i})">×</button></div>`).join("");}
 rTD();
 // EXPORT / IMPORT
-function exportData(){const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),weekKey:WK,state:S},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="sabrina-cc-"+WK+".json";a.click();URL.revokeObjectURL(url);document.getElementById("backup-status").textContent="✅ Exported "+new Date().toLocaleTimeString();}
-function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const data=JSON.parse(ev.target.result);if(data.state){Object.assign(S,data.state);sv(S);rSC();rCountdown();rReachoutLog();rF15();rTD();document.getElementById("backup-status").textContent="✅ Imported from "+data.exported?.split("T")[0];}}catch{document.getElementById("backup-status").textContent="❌ Invalid file.";}};reader.readAsText(file);}
+function exportData(){const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),weekKey:WK,state:S},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="sabrina-cc-"+WK+".json";a.click();URL.revokeObjectURL(url);const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Exported "+new Date().toLocaleTimeString();}
+function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const data=JSON.parse(ev.target.result);if(data.state){Object.assign(S,data.state);sv(S);rSC();rCountdown();rReachoutLog();rF15();rTD();const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Imported from "+data.exported?.split("T")[0];}}catch{const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="❌ Invalid file.";}};reader.readAsText(file);}
 
 // L10 PREP
 (function(){try{const d=JSON.parse(localStorage.getItem('sabrina_l10_v1'))||{};['frog','green'].forEach(k=>{const el=document.getElementById('l10-'+k);if(el&&d[k])el.value=d[k];});const now=new Date(),day=now.getDay(),dtu=day<=2?2-day:9-day,nt=new Date(now);nt.setDate(now.getDate()+dtu);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const lbl=document.getElementById('l10-next-date');if(lbl)lbl.textContent=dtu===0?'🔴 TODAY':('Next: Tue '+mo[nt.getMonth()]+' '+nt.getDate());}catch(e){}})();
