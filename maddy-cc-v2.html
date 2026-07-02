@@ -230,7 +230,30 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
     .card.drag-ready{cursor:grab;}
     .drag-hint{position:absolute;top:6px;right:8px;font-size:10px;color:rgba(0,0,0,.18);
       pointer-events:none;letter-spacing:.05em;user-select:none;}
-  </style>
+  
+    /* ADD WIDGET */
+    .add-widget-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--off);border:2px dashed var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;min-height:80px;width:100%;}
+    .add-widget-btn:hover{border-color:var(--a2);color:var(--a2);background:#fff;}
+    .widget-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;}
+    .widget-modal-overlay.open{display:flex;}
+    .widget-modal{background:#fff;border-radius:12px;padding:24px;width:min(480px,90vw);max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+    .widget-modal h3{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px;letter-spacing:.06em;text-transform:uppercase;}
+    .wm-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;display:block;margin-bottom:4px;margin-top:12px;}
+    .wm-input{width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:14px;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;}
+    .wm-input:focus{border-color:var(--a2);}
+    .emoji-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+    .emoji-opt{font-size:20px;cursor:pointer;padding:5px;border-radius:6px;border:2px solid transparent;transition:all .15s;line-height:1;}
+    .emoji-opt:hover,.emoji-opt.sel{border-color:var(--a2);background:var(--off);}
+    .span-btns{display:flex;gap:6px;margin-top:6px;}
+    .span-btn{flex:1;padding:8px;font-size:12px;font-weight:700;border:2px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;transition:all .15s;}
+    .span-btn.active{border-color:var(--a2);background:var(--a2);color:#fff;}
+    .modal-actions{display:flex;gap:8px;margin-top:18px;}
+    .modal-ok{flex:1;background:var(--a2);color:#fff;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;transition:background .15s;}
+    .modal-ok:hover{background:var(--a1);}
+    .modal-cancel{background:var(--off);color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+    .cw-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:14px;padding:0;transition:color .15s;}
+    .cw-del:hover{color:var(--red);}
+</style>
 </head>
 <body>
 <canvas id="cc"></canvas>
@@ -260,14 +283,14 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 
 <main>
 <!-- VERSE OF THE DAY -->
-<div class="card s4 votd-wrap">
+<div class="card s4 votd-wrap" data-card-id="card-votd">
   <div class="votd-label">✝ Verse of the Day</div>
   <div class="votd-text" id="votd-text"></div>
   <div class="votd-ref" id="votd-ref"></div>
 </div>
 
 <!-- TO-DO -->
-<div class="card s2">
+<div class="card s2" data-card-id="card-todo">
   <div class="ch"><span class="ct">✅ Today's To-Do</span><span class="sm" id="tc2"></span></div>
   <div class="cb">
     <div class="tir">
@@ -279,7 +302,7 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 </div>
 
 <!-- QUICK LINKS -->
-<div class="card">
+<div class="card" data-card-id="card-quicklinks">
   <div class="ch"><span class="ct">🔗 Quick Links</span></div>
   <div class="cb">
     <a href="/drstutz-cc-v2" class="ql-btn"><span class="ql-icon">🩺</span> Dr. Stutz</a>
@@ -289,40 +312,20 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 </div>
 
 <!-- FINAL 15 -->
-<div class="card eod-focus s1">
+<div class="card eod-focus s1" data-card-id="card-final15">
   <div class="ch"><span class="ct">🏁 Final 15</span><span class="sm" id="fc"></span></div>
   <div class="cb" id="fb"></div>
 </div>
 
 
-<!-- ROW 1: Goal Countdown + Radar + Reachout + Priority -->
-
-<!-- GOAL COUNTDOWN -->
-<div class="card">
-  <div class="ch"><span class="ct">⏳ Goal Countdown</span><span class="sm" id="days-left-lbl"></span></div>
-  <div class="cb">
-    <div class="countdown-grid" id="countdown-grid"></div>
-    <div style="margin-top:10px;">
-      <div class="sm" style="margin-bottom:4px;font-weight:600;">Best Time Windows</div>
-      <div class="tbr" id="tbs">
-        <div class="tb" data-s="7" data-e="9"><div class="tbt">7-9AM</div><div class="tbk">Radar+Setup</div></div>
-        <div class="tb" data-s="9" data-e="12"><div class="tbt">9-noon</div><div class="tbk">Calls</div></div>
-        <div class="tb" data-s="12" data-e="14"><div class="tbt">noon-2</div><div class="tbk">D2 Closes</div></div>
-        <div class="tb" data-s="14" data-e="17"><div class="tbt">2-5PM</div><div class="tbk">Calls</div></div>
-        <div class="tb" data-s="17" data-e="21"><div class="tbt">5PM+</div><div class="tbk">Final 15</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- RADAR -->
-<div class="card" style="grid-row:span 2;">
+<div class="card" style="grid-row:span 2;" data-card-id="card-radar">
   <div class="ch"><span class="ct">🎯 Radar Watch</span><span class="sm" id="rc"></span></div>
   <div class="cb sc-tall" id="rb"></div>
 </div>
 
 <!-- REACHOUT LOG -->
-<div class="card">
+<div class="card" data-card-id="card-reachout">
   <div class="ch"><span class="ct">📞 Reachout Log</span><span class="sm" id="rlog-count"></span></div>
   <div class="cb">
     <div class="rlog-input-row">
@@ -349,50 +352,36 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 <!-- ROW 3: To-Do + Final 15 -->
 
 <!-- L10 PREP -->
-  <div class="card">
+  <div class="card" data-card-id="card-l10">
     <div class="ch"><span class="ct">&#x1F4CB; L10 Prep</span><span class="sm" id="l10-next-date">Next: Tuesday</span></div>
-    <div class="cb">
-      <div style="background:var(--off);border-radius:6px;padding:7px 10px;margin-bottom:12px;font-size:11px;color:var(--muted);border-left:3px solid var(--a1);">
-        &#x1F4C5; Level 10 Meeting &mdash; Tuesdays 8:30 AM &nbsp;&middot;&nbsp; Runner: Sabrina &nbsp;&middot;&nbsp; Manager: Maddy (laptop)
-      </div>
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+      <div class="cb">
+    <div style="background:var(--off);border-radius:6px;padding:7px 10px;margin-bottom:12px;font-size:11px;color:var(--muted);border-left:3px solid var(--a1);">&#x1F4C5; Level 10 Meeting &mdash; Tuesdays 8:30 AM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:4px;">&#x1F4CA; Key Statistical Takeaways</div>
-        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Prepare 1-2 key stats to share with the group this week</div>
-        <textarea id="l10-stats" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:60px;line-height:1.5;box-sizing:border-box;" placeholder="1. &#10;2. " oninput="saveL10('stats',this.value)"></textarea>
-        <div id="l10-stats-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
+        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Prepare 1-2 key stats to share with the group</div>
+        <textarea id="l10-stats" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="1. &#10;2. " oninput="saveL10('stats',this.value)"></textarea>
       </div>
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:4px;">&#x1F534; Off-Track Items</div>
-        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Which items have been off-track for 3+ consecutive weeks?</div>
-        <textarea id="l10-offtrack" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:60px;line-height:1.5;box-sizing:border-box;" placeholder="List any issues..." oninput="saveL10('offtrack',this.value)"></textarea>
-        <div id="l10-offtrack-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
-      </div>
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+      <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F438; Frog Report</div>
-        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Hard conversations held &middot; accountability moments &middot; difficult decisions made &middot; problems solved &middot; responsibilities owned &middot; massive action taken</div>
-        <textarea id="l10-frog" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;" placeholder="What frog did you eat this week? A hard conversation, a difficult decision, something you owned or solved..." oninput="saveL10('frog',this.value)"></textarea>
-        <div id="l10-frog-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
+        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Hard conversations &middot; accountability &middot; difficult decisions &middot; problems solved &middot; responsibilities owned &middot; massive action taken</div>
+        <textarea id="l10-frog" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="What frog did you eat this week?" oninput="saveL10('frog',this.value)"></textarea>
       </div>
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+      <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F7E2; Green Handed</div>
-        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Caught doing something right &mdash; a win, a moment of excellence, something worth celebrating from this week</div>
-        <textarea id="l10-green" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;" placeholder="What did you or the team get caught doing really well this week?" oninput="saveL10('green',this.value)"></textarea>
-        <div id="l10-green-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
+        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Caught doing something right &mdash; a win worth celebrating</div>
+        <textarea id="l10-green" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="What did the team get caught doing well?" oninput="saveL10('green',this.value)"></textarea>
       </div>
     </div>
   </div>
 
-
-
-<!-- DRIVE BACKUP -->
-<div class="card">
-  <div class="ch"><span class="ct">💾 Data Backup</span></div>
-  <div class="cb">
-    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Export your week's data to keep a record, or restore from a previous backup.</p>
-    <button onclick="exportData()" style="width:100%;background:var(--a2);color:#fff;border:none;border-radius:5px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;transition:background .15s;" onmouseover="this.style.background='var(--a1)'" onmouseout="this.style.background='var(--a2)'">⬇️ Export This Week's Data</button>
-    <label style="width:100%;display:block;background:var(--off);border:1px solid var(--border);border-radius:5px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--muted);">📂 Import Backup <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
-    <p style="font-size:10px;color:var(--muted);margin-top:8px;" id="backup-status"></p>
   </div>
+
+
+
+<!-- ADD WIDGET BTN -->
+<div class="card add-widget-btn" data-card-id="add-widget-btn" onclick="openWidgetModal()">
+  <span style="font-size:20px;margin-right:4px;">+</span> Add Widget
 </div>
 
 </main>
@@ -579,6 +568,7 @@ rSC();
 
 // ── GOAL COUNTDOWN ──────────────────────────────────────────────
 function rCountdown(){
+  if(!document.getElementById("days-left-lbl"))return;
   const now=new Date();
   const day=now.getDay();
   const daysLeft=day===0?0:Math.max(0,5-day);
@@ -779,7 +769,7 @@ function exportData(){
   const a=document.createElement("a");
   a.href=url;a.download="maddy-cc-"+WK+".json";a.click();
   URL.revokeObjectURL(url);
-  document.getElementById("backup-status").textContent="✅ Exported "+new Date().toLocaleTimeString();
+  const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Exported "+new Date().toLocaleTimeString();
 }
 function importData(e){
   const file=e.target.files[0];if(!file)return;
@@ -790,9 +780,9 @@ function importData(e){
       if(data.state){
         Object.assign(S,data.state);sv(S);
         rSC();rCountdown();rReachoutLog();rNoShow();rF15();rTD();rSched();
-        document.getElementById("backup-status").textContent="✅ Imported from "+data.exported?.split("T")[0];
+        const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Imported from "+data.exported?.split("T")[0];
       }
-    }catch{document.getElementById("backup-status").textContent="❌ Invalid file.";}
+    }catch{const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="❌ Invalid file.";}
   };
   reader.readAsText(file);
 }
@@ -803,7 +793,7 @@ const L10_KEY = 'maddy_l10_v1';
 function loadL10(){
   try{
     const d = JSON.parse(localStorage.getItem(L10_KEY)) || {};
-    ['frog','green'].forEach(k=>{
+    ['frog','green','stats'].forEach(k=>{
       const el = document.getElementById('l10-'+k);
       if(el && d[k]) el.value = d[k];
     });
@@ -902,7 +892,7 @@ const VD=[
 ];
 (function(){
   const d=new Date(),s=new Date(d.getFullYear(),0,0),day=Math.floor((d-s)/864e5);
-  const v={t:"Therefore, I urge you, brothers and sisters, in view of God’s mercy, to offer your bodies as a living sacrifice, holy and pleasing to God—this is your true and proper worship.",r:"Romans 12:1 (NIV)"};
+  const v=VD[day%VD.length];
   const tt=document.getElementById("votd-text");
   const tr=document.getElementById("votd-ref");
   if(tt) tt.textContent="“"+v.t+"”";
@@ -923,6 +913,20 @@ const VD=[
       h.className='drag-hint';h.textContent='⠿';
       c.insertBefore(h,c.firstChild);
     });
+    // Restore saved card order
+    (function(){
+      try{
+        var saved=JSON.parse(localStorage.getItem('_card_order_'+location.pathname));
+        if(!saved||!saved.length)return;
+        var m=document.querySelector('main');
+        var ab=document.getElementById('add-widget-btn');
+        saved.forEach(function(id){
+          if(id==='add-widget-btn')return;
+          var c=m.querySelector('[data-card-id="'+id+'"]');
+          if(c){if(ab)m.insertBefore(c,ab);else m.appendChild(c);}
+        });
+      }catch(e){}
+    })();
     Sortable.create(main,{
       animation:220,
       ghostClass:'sortable-ghost',
@@ -936,19 +940,105 @@ const VD=[
       onUnchoose:function(e){e.item.classList.remove('drag-ready');},
       onEnd:function(e){
         e.item.classList.remove('drag-ready');
-        // Persist card order in localStorage
-        try{
-          var order=[].slice.call(document.querySelectorAll('main > .card')).map(function(c){
-            var t=c.querySelector('.ct,.votd-label');
-            return t?t.textContent.trim():c.className;
-          });
-          localStorage.setItem('_card_order_'+location.pathname,JSON.stringify(order));
-        }catch(err){}
+        saveCardOrder();
       }
     });
   };
   document.head.appendChild(s);
 })();
+
+// ── CUSTOM WIDGETS ───────────────────────────────────────────────────
+const CW_KEY='_cw_'+location.pathname;
+const EMOJI_OPTS=['📋','✅','⭐','🎯','📌','💡','📞','📊','🏆','💪','🔥','📈','⚡','🎉','🔔','📝','🗓','💼','🩺','📣','🧠','🔑','❤️','🌟','🎪','🚀','⚙️','🛡️','💰','🤝','📚','🏋️','🎸','🎨','📷','🏠','🌎','🌱','🍎','☕'];
+let awIcon='📋',awSpan=1;
+function openWidgetModal(){
+  const g=document.getElementById('aw-emoji-grid');
+  g.innerHTML=EMOJI_OPTS.map(e=>'<span class="emoji-opt'+(e===awIcon?' sel':'')+'" onclick="selectEmoji(this,''+e+'')">'+e+'</span>').join('');
+  document.getElementById('aw-title').value='';
+  document.getElementById('aw-modal').classList.add('open');
+  setTimeout(function(){document.getElementById('aw-title').focus();},60);
+}
+function closeWidgetModal(){document.getElementById('aw-modal').classList.remove('open');}
+function selectEmoji(el,em){document.querySelectorAll('.emoji-opt').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');awIcon=em;}
+function selectSpan(el,n){document.querySelectorAll('.span-btn').forEach(function(x){x.classList.remove('active');});el.classList.add('active');awSpan=n;}
+function loadCWs(){try{return JSON.parse(localStorage.getItem(CW_KEY))||[];}catch(e){return[];}}
+function saveCWs(a){localStorage.setItem(CW_KEY,JSON.stringify(a));}
+function saveCardOrder(){
+  try{
+    var order=[].slice.call(document.querySelectorAll('main > .card[data-card-id]')).map(function(c){return c.getAttribute('data-card-id');});
+    localStorage.setItem('_card_order_'+location.pathname,JSON.stringify(order));
+  }catch(err){}
+}
+function createWidget(){
+  const title=document.getElementById('aw-title').value.trim();
+  if(!title)return document.getElementById('aw-title').focus();
+  const cw={id:'cw_'+Date.now(),icon:awIcon,title:title,span:awSpan,items:[]};
+  const arr=loadCWs();arr.push(cw);saveCWs(arr);
+  renderCW(cw);closeWidgetModal();saveCardOrder();
+}
+function deleteWidget(id){
+  if(!confirm('Delete this widget?'))return;
+  saveCWs(loadCWs().filter(function(x){return x.id!==id;}));
+  const el=document.getElementById('cw-'+id);if(el)el.remove();saveCardOrder();
+}
+function addCWItem(id){
+  const inp=document.getElementById('cwi-inp-'+id);const text=inp.value.trim();if(!text)return;
+  const arr=loadCWs();const cw=arr.find(function(x){return x.id===id;});if(!cw)return;
+  cw.items.unshift({id:'i'+Date.now(),text:text,done:false});saveCWs(arr);renderCWItems(id,cw.items);inp.value='';
+}
+function toggleCWItem(cwId,iId){
+  const arr=loadCWs();const cw=arr.find(function(x){return x.id===cwId;});if(!cw)return;
+  const it=cw.items.find(function(x){return x.id===iId;});if(!it)return;it.done=!it.done;
+  if(it.done){const i=cw.items.indexOf(it);cw.items.splice(i,1);cw.items.push(it);}
+  saveCWs(arr);renderCWItems(cwId,cw.items);
+}
+function deleteCWItem(cwId,iId){
+  const arr=loadCWs();const cw=arr.find(function(x){return x.id===cwId;});if(!cw)return;
+  cw.items=cw.items.filter(function(x){return x.id!==iId;});saveCWs(arr);renderCWItems(cwId,cw.items);
+}
+function renderCWItems(id,items){
+  const el=document.getElementById('cwi-list-'+id);if(!el)return;
+  const open=items.filter(function(x){return !x.done;}),done=items.filter(function(x){return x.done;});
+  el.innerHTML=[].concat(open,done).map(function(it){
+    return '<div class="todo-item'+(it.done?' done':'')+'"><div class="check-box" onclick="toggleCWItem(''+id+'',''+it.id+'')">'+
+      (it.done?'&#x2713;':'')+'</div><div class="check-text">'+it.text+'</div><button class="todo-del" onclick="event.stopPropagation();deleteCWItem(''+id+'',''+it.id+'')">&#xD7;</button></div>';
+  }).join('');
+}
+function renderCW(cw){
+  const div=document.createElement('div');
+  div.className='card';div.id='cw-'+cw.id;div.setAttribute('data-card-id','cw-'+cw.id);
+  if(cw.span>1)div.style.gridColumn='span '+cw.span;
+  div.innerHTML='<div class="ch"><span class="ct">'+cw.icon+' '+cw.title+'</span><button class="cw-del" onclick="deleteWidget(''+cw.id+'')">&#x1F5D1;</button></div>'+
+    '<div class="cb"><div class="todo-input-row"><input class="todo-input" id="cwi-inp-'+cw.id+'" placeholder="Add item..." onkeydown="if(event.key==='Enter')addCWItem(''+cw.id+'')"><button class="todo-add-btn" onclick="addCWItem(''+cw.id+'')">+</button></div><div id="cwi-list-'+cw.id+'"></div></div>';
+  const ab=document.getElementById('add-widget-btn');
+  const main=document.querySelector('main');
+  if(ab)main.insertBefore(div,ab);else main.appendChild(div);
+  renderCWItems(cw.id,cw.items);
+}
+loadCWs().forEach(function(cw){renderCW(cw);});
+
 </script>
+
+<!-- WIDGET MODAL -->
+<div class="widget-modal-overlay" id="aw-modal" onclick="if(event.target===this)closeWidgetModal()">
+  <div class="widget-modal">
+    <h3>&#x2795; Add New Widget</h3>
+    <label class="wm-label">Widget Title</label>
+    <input class="wm-input" id="aw-title" type="text" placeholder="e.g. Team Wins, Follow-Ups..." maxlength="40" onkeydown="if(event.key==='Enter')createWidget()">
+    <label class="wm-label">Choose an Icon</label>
+    <div class="emoji-grid" id="aw-emoji-grid"></div>
+    <label class="wm-label">Widget Width</label>
+    <div class="span-btns">
+      <button class="span-btn active" onclick="selectSpan(this,1)">Narrow</button>
+      <button class="span-btn" onclick="selectSpan(this,2)">Medium</button>
+      <button class="span-btn" onclick="selectSpan(this,3)">Wide</button>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeWidgetModal()">Cancel</button>
+      <button class="modal-ok" onclick="createWidget()">Create Widget</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
