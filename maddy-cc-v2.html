@@ -295,6 +295,26 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 </div>
 
 
+<!-- ROW 1: Goal Countdown + Radar + Reachout + Priority -->
+
+<!-- GOAL COUNTDOWN -->
+<div class="card">
+  <div class="ch"><span class="ct">⏳ Goal Countdown</span><span class="sm" id="days-left-lbl"></span></div>
+  <div class="cb">
+    <div class="countdown-grid" id="countdown-grid"></div>
+    <div style="margin-top:10px;">
+      <div class="sm" style="margin-bottom:4px;font-weight:600;">Best Time Windows</div>
+      <div class="tbr" id="tbs">
+        <div class="tb" data-s="7" data-e="9"><div class="tbt">7-9AM</div><div class="tbk">Radar+Setup</div></div>
+        <div class="tb" data-s="9" data-e="12"><div class="tbt">9-noon</div><div class="tbk">Calls</div></div>
+        <div class="tb" data-s="12" data-e="14"><div class="tbt">noon-2</div><div class="tbk">D2 Closes</div></div>
+        <div class="tb" data-s="14" data-e="17"><div class="tbt">2-5PM</div><div class="tbk">Calls</div></div>
+        <div class="tb" data-s="17" data-e="21"><div class="tbt">5PM+</div><div class="tbk">Final 15</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- RADAR -->
 <div class="card" style="grid-row:span 2;">
   <div class="ch"><span class="ct">🎯 Radar Watch</span><span class="sm" id="rc"></span></div>
@@ -363,6 +383,17 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
   </div>
 
 
+
+<!-- DRIVE BACKUP -->
+<div class="card">
+  <div class="ch"><span class="ct">💾 Data Backup</span></div>
+  <div class="cb">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Export your week's data to keep a record, or restore from a previous backup.</p>
+    <button onclick="exportData()" style="width:100%;background:var(--a2);color:#fff;border:none;border-radius:5px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;transition:background .15s;" onmouseover="this.style.background='var(--a1)'" onmouseout="this.style.background='var(--a2)'">⬇️ Export This Week's Data</button>
+    <label style="width:100%;display:block;background:var(--off);border:1px solid var(--border);border-radius:5px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--muted);">📂 Import Backup <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
+    <p style="font-size:10px;color:var(--muted);margin-top:8px;" id="backup-status"></p>
+  </div>
+</div>
 
 </main>
 
@@ -548,7 +579,6 @@ rSC();
 
 // ── GOAL COUNTDOWN ──────────────────────────────────────────────
 function rCountdown(){
-  if(!document.getElementById("days-left-lbl"))return;
   const now=new Date();
   const day=now.getDay();
   const daysLeft=day===0?0:Math.max(0,5-day);
@@ -749,7 +779,7 @@ function exportData(){
   const a=document.createElement("a");
   a.href=url;a.download="maddy-cc-"+WK+".json";a.click();
   URL.revokeObjectURL(url);
-  const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Exported "+new Date().toLocaleTimeString();
+  document.getElementById("backup-status").textContent="✅ Exported "+new Date().toLocaleTimeString();
 }
 function importData(e){
   const file=e.target.files[0];if(!file)return;
@@ -760,9 +790,9 @@ function importData(e){
       if(data.state){
         Object.assign(S,data.state);sv(S);
         rSC();rCountdown();rReachoutLog();rNoShow();rF15();rTD();rSched();
-        const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="✅ Imported from "+data.exported?.split("T")[0];
+        document.getElementById("backup-status").textContent="✅ Imported from "+data.exported?.split("T")[0];
       }
-    }catch{const _bs=document.getElementById("backup-status");if(_bs)_bs.textContent="❌ Invalid file.";}
+    }catch{document.getElementById("backup-status").textContent="❌ Invalid file.";}
   };
   reader.readAsText(file);
 }
@@ -872,7 +902,7 @@ const VD=[
 ];
 (function(){
   const d=new Date(),s=new Date(d.getFullYear(),0,0),day=Math.floor((d-s)/864e5);
-  const v=VD[day%VD.length];
+  const v={t:"Therefore, I urge you, brothers and sisters, in view of God’s mercy, to offer your bodies as a living sacrifice, holy and pleasing to God—this is your true and proper worship.",r:"Romans 12:1 (NIV)"};
   const tt=document.getElementById("votd-text");
   const tr=document.getElementById("votd-ref");
   if(tt) tt.textContent="“"+v.t+"”";
