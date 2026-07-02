@@ -117,16 +117,6 @@ body.eod-mode .card{opacity:.3;transition:opacity .4s;}
 body.eod-mode .card.eod-focus{opacity:1;}
 footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-spacing:.05em;border-top:1px solid var(--border);background:var(--card);transition:background .8s;}
 .flogo{height:22px;opacity:.4;vertical-align:middle;margin-right:6px;}
-
-.ql-btn{display:inline-block;padding:8px 18px;background:#1B2A4A;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;transition:background .2s;cursor:pointer}
-.ql-btn:hover{background:#C8102E}
-
-main{align-items:start}
-.card{resize:both;overflow:hidden;position:relative;box-sizing:border-box;min-width:160px;min-height:80px}
-.ch{cursor:grab;-webkit-user-select:none;user-select:none}
-.ch:active{cursor:grabbing}
-.sortable-ghost{opacity:.35;outline:2px dashed #C8102E}
-.sortable-chosen{box-shadow:0 8px 24px rgba(0,0,0,.25)!important;z-index:999}
 </style>
 </head>
 <body>
@@ -156,7 +146,7 @@ main{align-items:start}
 <main>
 
 <!-- TO-DO -->
-<div class="card">
+<div class="card s3">
   <div class="ch"><span class="ct">✅ Today's To-Do</span><span class="sm" id="tc2"></span></div>
   <div class="cb">
     <div class="tir">
@@ -168,11 +158,26 @@ main{align-items:start}
 </div>
 
 <!-- FINAL 15 -->
-<div class="card eod-focus s1" style="align-self:start">
+<div class="card eod-focus s1">
   <div class="ch"><span class="ct">🏁 Final 15</span><span class="sm" id="fc"></span></div>
   <div class="cb" id="fb"></div>
 </div>
 
+<!-- GOAL COUNTDOWN -->
+<div class="card">
+  <div class="ch"><span class="ct">&#x23F3; Goal Countdown</span><span class="sm" id="days-left-lbl"></span></div>
+  <div class="cb">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;" id="countdown-grid"></div>
+    <div class="sm" style="margin-bottom:4px;font-weight:600;">Best Time Windows</div>
+    <div class="tbr" id="tbs">
+      <div class="tb" data-s="7" data-e="9"><div class="tbt">7-9AM</div><div class="tbk">GR Prep + Setup</div></div>
+      <div class="tb" data-s="9" data-e="12"><div class="tbt">9-noon</div><div class="tbk">Reactivation Calls</div></div>
+      <div class="tb" data-s="12" data-e="14"><div class="tbt">noon-2</div><div class="tbk">Patient Flow</div></div>
+      <div class="tb" data-s="14" data-e="17"><div class="tbt">2-5PM</div><div class="tbk">Cycle Cadence</div></div>
+      <div class="tb" data-s="17" data-e="21"><div class="tbt">5PM+</div><div class="tbk">Closing Duties</div></div>
+    </div>
+  </div>
+</div>
 
 <!-- REACHOUT LOG -->
 <div class="card" style="grid-row:span 2;">
@@ -222,32 +227,22 @@ main{align-items:start}
       <textarea id="l10-green" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:80px;line-height:1.5;" placeholder="What did you get caught doing well?" oninput="saveL10('green',this.value)"></textarea>
       <div id="l10-green-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
     </div>
-    <div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F4AA; Monthly Courage Commitment</div>
-      <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">One thing this month that takes courage &mdash; something that pushes you outside your comfort zone</div>
-      <textarea id="l10-courage" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:80px;line-height:1.5;" placeholder="What's your courage commitment this month?" oninput="saveL10('courage',this.value)"></textarea>
-      <div id="l10-courage-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
-    </div>
   </div>
 </div>
 
 
 
-<!-- QUICK LINKS -->
-<div class="card" style="align-self:start">
-  <div class="ch"><span class="ct">🔗 Quick Links</span></div>
-  <div class="cb" style="display:flex;gap:10px;flex-wrap:wrap;padding:14px">
-    <a href="/maddy-cc-v2.html" class="ql-btn">Maddy’s Board</a>
-    <a href="/drstutz-cc-v2.html" class="ql-btn">Dr. Stutz’s Board</a>
-    <a href="/d1-recon.html" class="ql-btn">D1 Recon</a>
+<!-- EXPORT -->
+<div class="card">
+  <div class="ch"><span class="ct">&#x1F4BE; Data Backup</span></div>
+  <div class="cb">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Export your week's data or restore from a backup.</p>
+    <button onclick="exportData()" style="width:100%;background:var(--a2);color:#fff;border:none;border-radius:5px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;" onmouseover="this.style.background='var(--a1)'" onmouseout="this.style.background='var(--a2)'">&#x2B07;&#xFE0F; Export This Week</button>
+    <label style="width:100%;display:block;background:var(--off);border:1px solid var(--border);border-radius:5px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--muted);">&#x1F4C2; Import Backup <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
+    <p style="font-size:10px;color:var(--muted);margin-top:8px;" id="backup-status"></p>
   </div>
 </div>
 
-<!-- DAD JOKE -->
-<div class="card" style="align-self:start">
-  <div class="ch"><span class="ct">😄 Dad Joke of the Hour</span></div>
-  <div class="cb" style="padding:14px;font-size:15px;line-height:1.5"><div id="djc">Loading…</div></div>
-</div>
 </main>
 
 <footer>
@@ -325,7 +320,6 @@ function renderSparkline(vals,goal){const mx=Math.max(...vals,goal,1);return val
 function chM(id,d,btn){const m=MX.find(x=>x.id===id);let v=(S[WK][id]||0)+d;v=m.ip?Math.max(0,Math.min(100,v)):Math.max(0,v);S[WK][id]=v;sv(S);const n=MX.filter(m2=>{const v2=S[WK][m2.id]||0;return m2.ip?v2>=m2.g:v2>=m2.g;}).length;if(n>pOT)confetti(btn);pOT=n;rSC();rCountdown();}
 function resetSC(){S[WK]={};sv(S);rSC();rCountdown();}
 function rSC(){let h="",ot=0;MX.forEach(m=>{const v=S[WK][m.id]||0,p=Math.min(100,m.ip?v:Math.round(v/m.g*100)),on=m.ip?v>=m.g:v>=m.g;if(on)ot++;const bc=on?"var(--green)":v===0?"var(--border)":"var(--a1)";const pc=v===0?"sem":on?"son":"soff",pt=v===0?"—":on?"✓ On Track":"↑ Off Track";const dv=m.ip?v+"%":v;const spark=getSparkData(m.id);h+=`<div class="mr"><div style="flex:1"><div class="ml">${m.l}</div><div class="mg">Goal: ${m.gl}</div><div class="pw"><div class="pf" style="width:${p}%;background:${bc}"></div></div><div style="display:flex;align-items:flex-end;gap:1px;height:14px;margin-top:3px;">${renderSparkline(spark,m.g)}<span style="font-size:9px;color:var(--muted);margin-left:3px;">4wk</span></div></div><div class="mright"><div class="cg"><button class="cb2 mn" onclick="chM('${m.id}',${m.ip?-5:-1},this)">−</button><div class="cv">${dv}</div><button class="cb2 pl" onclick="chM('${m.id}',${m.ip?5:1},this)">+</button></div><span class="sp ${pc}">${pt}</span></div></div>`;});pOT=ot;document.getElementById("sb").innerHTML=h;document.getElementById("ss").textContent=ot+"/"+MX.length+" on track";}
-rF15();
 rSC();
 
 // COUNTDOWN
@@ -343,98 +337,38 @@ document.getElementById("pb").innerHTML=[
 ].map((p,i)=>`<div class="pi"><div class="pn">${i+1}</div><div><div class="pt">${p.t}</div><div class="pd">${p.d}</div></div></div>`).join("");
 
 // REACHOUT LOG
-function addReachout(){const inp=document.getElementById("rlog-input");const name=inp.value.trim();if(!name)return;const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}const _tk=new Date().toDateString(),_wk=gwk();if(!_s.rlog)_s.rlog={};if(!_s.rlog[_tk])_s.rlog[_tk]=[];const now=new Date();const t=(now.getHours()%12||12)+":"+String(now.getMinutes()).padStart(2,"0")+(now.getHours()>=12?" PM":" AM");_s.rlog[_tk].push({name,time:t});inp.value="";if(!_s[_wk])_s[_wk]={};_s[_wk].ro=_s.rlog[_tk].length;try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}confetti(inp);rReachoutLog();try{rSC()}catch(e){}try{rCountdown()}catch(e){}}
-function deleteReachout(i){const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}const _tk=new Date().toDateString(),_wk=gwk();if(!_s.rlog)_s.rlog={};if(!_s.rlog[_tk])_s.rlog[_tk]=[];if(i>=0&&i<_s.rlog[_tk].length)_s.rlog[_tk].splice(i,1);if(!_s[_wk])_s[_wk]={};_s[_wk].ro=_s.rlog[_tk].length;try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}rReachoutLog();try{rSC()}catch(e){}try{rCountdown()}catch(e){}}
-function rReachoutLog(){const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}const _tk=new Date().toDateString(),_wk=gwk();if(!_s.rlog)_s.rlog={};if(!_s.rlog[_tk])_s.rlog[_tk]=[];const count=_s.rlog[_tk].length,goal=20,pct=Math.min(100,Math.round(count/goal*100));const now=new Date(),day=now.getDay(),daysLeft=Math.max(1,day===0?1:5-day+1),needed=Math.max(0,goal-count),perDay=Math.ceil(needed/daysLeft*10)/10;document.getElementById("rlog-count").textContent=count+"/"+goal+" this week";document.getElementById("pace-label").textContent=count>=goal?"✓ Goal met!":perDay+"/day to hit goal";document.getElementById("pace-fill").style.width=pct+"%";document.getElementById("pace-fill").style.background=count>=goal?"var(--green)":pct>60?"var(--gold)":"var(--a1)";const list=document.getElementById("rlog-list");if(!_s.rlog[_tk].length){list.innerHTML=`<p style="font-size:11px;color:var(--muted);padding:8px 0;">No reachouts logged today. Start dialing!</p>`;return;}list.innerHTML=[..._s.rlog[_tk]].reverse().map((r,ri)=>{const i=_s.rlog[_tk].length-1-ri;return`<div class="rlog-item"><div><div class="rlog-name">${r.name}</div><div class="rlog-time">${r.time}</div></div><button class="rlog-del" onclick="deleteReachout(${i})">×</button></div>`;}).join("");}
+function addReachout(){const inp=document.getElementById("rlog-input");const name=inp.value.trim();if(!name)return;const now=new Date();const t=(now.getHours()%12||12)+":"+String(now.getMinutes()).padStart(2,"0")+(now.getHours()>=12?" PM":" AM");S.rlog[TK].push({name,time:t});inp.value="";S[WK].ro=S.rlog[TK].length;sv(S);confetti(inp);rReachoutLog();rSC();rCountdown();}
+function deleteReachout(i){S.rlog[TK].splice(i,1);S[WK].ro=S.rlog[TK].length;sv(S);rReachoutLog();rSC();rCountdown();}
+function rReachoutLog(){const count=S.rlog[TK].length,goal=20,pct=Math.min(100,Math.round(count/goal*100));const now=new Date(),day=now.getDay(),daysLeft=Math.max(1,day===0?1:5-day+1),needed=Math.max(0,goal-count),perDay=Math.ceil(needed/daysLeft*10)/10;document.getElementById("rlog-count").textContent=count+"/"+goal+" this week";document.getElementById("pace-label").textContent=count>=goal?"✓ Goal met!":perDay+"/day to hit goal";document.getElementById("pace-fill").style.width=pct+"%";document.getElementById("pace-fill").style.background=count>=goal?"var(--green)":pct>60?"var(--gold)":"var(--a1)";const list=document.getElementById("rlog-list");if(!S.rlog[TK].length){list.innerHTML=`<p style="font-size:11px;color:var(--muted);padding:8px 0;">No reachouts logged today. Start dialing!</p>`;return;}list.innerHTML=[...S.rlog[TK]].reverse().map((r,ri)=>{const i=S.rlog[TK].length-1-ri;return`<div class="rlog-item"><div><div class="rlog-name">${r.name}</div><div class="rlog-time">${r.time}</div></div><button class="rlog-del" onclick="deleteReachout(${i})">×</button></div>`;}).join("");}
 rReachoutLog();
 
 // FINAL 15 — Sabrina's closing duties (placeholder — update with her actual list)
-const F15=["SHS Done (D2/PR)","ROF Financials","GR Accountability","Special Occasion Cards","Everything in \"Starting Position\"","Weekly Scorecard"];
+const F15=["SHS Done (D2/PR)","ROF Financial Agreements","GR Accountability","Special Occasion Cards","Everything in Starting Position","Weekly Scorecard Updated"];
 let pF=0;
-function tF15(i){const raw=localStorage.getItem('sabrina_v2');const d=raw?JSON.parse(raw):{};d.state=d.state||{};d.state.f15=d.state.f15||{};d.state.f15[i]=!d.state.f15[i];localStorage.setItem('sabrina_v2',JSON.stringify(d));rF15();}
-function rF15(){const el=document.getElementById('fb');if(!el)return;const raw=localStorage.getItem('sabrina_v2');const st=(raw?JSON.parse(raw):{}).state?.f15||{};const items=["SHS Done (D2/PR)","ROF Financials","GR Accountability","Special Occasion Cards","Everything in \"Starting Position\"","Weekly Scorecard"];el.innerHTML=items.map((txt,i)=>{const dn=!!st[i];return`<div class="f15i${dn?' done':''}"><div class="f15c" onclick="tF15(${i})"></div><div class="f15t">${txt}</div></div>`;}).join('');const done=Object.values(st).filter(Boolean).length;const fc=document.getElementById('fc');if(fc)fc.textContent=done+'/'+items.length;}
+function tF15(i,el){S.f15[TK][i]=!S.f15[TK][i];sv(S);const d=F15.filter((_,j)=>S.f15[TK][j]).length;if(d>pF)confetti(el);if(d===F15.length)setTimeout(()=>confetti(),300);pF=d;rF15();}
+function rF15(){const d=F15.filter((_,i)=>S.f15[TK][i]).length;document.getElementById("fc").textContent=d+"/"+F15.length+" done";document.getElementById("fb").innerHTML=F15.map((t,i)=>{const dn=!!S.f15[TK][i];return`<div class="f15i ${dn?"done":""}" onclick="tF15(${i},this)"><div class="f15n">${i+1}</div><div class="f15t">${t}</div><div class="f15c"></div></div>`;}).join("");pF=d;}
 rF15();
 
 // TO-DO
 const SD=[{t:"Finalize the F15",d:false,s:"L10"},{t:"Flags — update and review",d:false,s:"L10"},{t:"Plan Builder Training w/ Dr. Stutz",d:false,s:"L10"},{t:"Re-Training on Chiro180",d:false,s:"L10"},{t:"Review Career Paths w/ Sabrina",d:false,s:"L10"},{t:"Deploy all 5 L&L signs (Sabrina: 2)",d:false,s:"L10"}];
 if(!S.todos.length)S.todos=SD;
-function addTodo(){const i=document.getElementById("tii"),t=i.value.trim();if(!t)return;const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}if(!_s.todos)_s.todos=[];const undone=_s.todos.filter(x=>!x.d);const done=_s.todos.filter(x=>x.d);_s.todos=[{t,d:false,s:"Today"},...undone,...done];i.value="";try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}rTD();}
-function tTD(i,el){const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}if(!_s.todos)_s.todos=[];_s.todos[i].d=!_s.todos[i].d;try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}if(_s.todos[i].d){confetti(el);const item=_s.todos.splice(i,1)[0];_s.todos.push(item);try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}}rTD();}
-function dTD(i){const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}if(!_s.todos)_s.todos=[];_s.todos.splice(i,1);try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){}rTD();}
-function rTD(){const K='sabrina_cc_v1';let _s;try{_s=JSON.parse(localStorage.getItem(K))||{}}catch(e){_s={}}const _tk=new Date().toDateString(),_wk=gwk();if(!_s.todos)_s.todos=[];const dn=_s.todos.filter(t=>t.d).length;document.getElementById("tc2").textContent=dn+"/"+_s.todos.length+" done";const el=document.getElementById("tl");el.innerHTML=_s.todos.map((t,i)=>`<div class="ti2 ${t.d?"done":""}" draggable="true" data-i="${i}" ondragstart="tdDrag=${i}" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(tdDrag!==null&&tdDrag!==${i}){const a=_s.todos.splice(tdDrag,1)[0];_s.todos.splice(${i},0,a);tdDrag=null;try{localStorage.setItem(K,JSON.stringify(_s))}catch(e){};rTD()}"><span class="tdrag">⣿</span><div class="tck2" onclick="event.stopPropagation();tTD(${i},this)"></div><div style="flex:1"><div class="tt">${t.t}</div>${t.s?`<span class="tsrc">${t.s}</span>`:""}</div><button class="tdel" onclick="event.stopPropagation();dTD(${i})">×</button></div>`).join("");}
+function addTodo(){const i=document.getElementById("tii"),t=i.value.trim();if(!t)return;const undone=S.todos.filter(x=>!x.d);const done=S.todos.filter(x=>x.d);S.todos=[{t,d:false,s:"Today"},...undone,...done];i.value="";sv(S);rTD();}
+function tTD(i,el){S.todos[i].d=!S.todos[i].d;sv(S);if(S.todos[i].d){confetti(el);const item=S.todos.splice(i,1)[0];S.todos.push(item);sv(S);}rTD();}
+function dTD(i){S.todos.splice(i,1);sv(S);rTD();}
+let tdDrag=null;
+function rTD(){const dn=S.todos.filter(t=>t.d).length;document.getElementById("tc2").textContent=dn+"/"+S.todos.length+" done";const el=document.getElementById("tl");el.innerHTML=S.todos.map((t,i)=>`<div class="ti2 ${t.d?"done":""}" draggable="true" data-i="${i}" ondragstart="tdDrag=${i}" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(tdDrag!==null&&tdDrag!==${i}){const a=S.todos.splice(tdDrag,1)[0];S.todos.splice(${i},0,a);tdDrag=null;sv(S);rTD()}"><span class="tdrag">⣿</span><div class="tck2" onclick="event.stopPropagation();tTD(${i},this)"></div><div style="flex:1"><div class="tt">${t.t}</div>${t.s?`<span class="tsrc">${t.s}</span>`:""}</div><button class="tdel" onclick="event.stopPropagation();dTD(${i})">×</button></div>`).join("");}
 rTD();
 // EXPORT / IMPORT
 function exportData(){const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),weekKey:WK,state:S},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="sabrina-cc-"+WK+".json";a.click();URL.revokeObjectURL(url);document.getElementById("backup-status").textContent="✅ Exported "+new Date().toLocaleTimeString();}
-function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const data=JSON.parse(ev.target.result);if(data&&data.state){Object.assign(S,data.state);sv(S);rSC();rCountdown();rReachoutLog();rTD();document.getElementById("backup-status").textContent="✅ Imported from "+data.exported?.split("T")[0];}rF15();
-}catch{document.getElementById("backup-status").textContent="❌ Invalid file.";}};reader.readAsText(file);}
+function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const data=JSON.parse(ev.target.result);if(data.state){Object.assign(S,data.state);sv(S);rSC();rCountdown();rReachoutLog();rF15();rTD();document.getElementById("backup-status").textContent="✅ Imported from "+data.exported?.split("T")[0];}}catch{document.getElementById("backup-status").textContent="❌ Invalid file.";}};reader.readAsText(file);}
 
 // L10 PREP
-(function(){try{const d=JSON.parse(localStorage.getItem('sabrina_l10_v1'))||{};['frog','green','courage'].forEach(k=>{const el=document.getElementById('l10-'+k);if(el&&d[k])el.value=d[k];});const now=new Date(),day=now.getDay(),dtu=day<=2?2-day:9-day,nt=new Date(now);nt.setDate(now.getDate()+dtu);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const lbl=document.getElementById('l10-next-date');if(lbl)lbl.textContent=dtu===0?'🔴 TODAY':('Next: Tue '+mo[nt.getMonth()]+' '+nt.getDate());}catch(e){}})();
+(function(){try{const d=JSON.parse(localStorage.getItem('sabrina_l10_v1'))||{};['frog','green'].forEach(k=>{const el=document.getElementById('l10-'+k);if(el&&d[k])el.value=d[k];});const now=new Date(),day=now.getDay(),dtu=day<=2?2-day:9-day,nt=new Date(now);nt.setDate(now.getDate()+dtu);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const lbl=document.getElementById('l10-next-date');if(lbl)lbl.textContent=dtu===0?'🔴 TODAY':('Next: Tue '+mo[nt.getMonth()]+' '+nt.getDate());}catch(e){}})();
 const _l10t={};
 function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{try{const d=JSON.parse(localStorage.getItem('sabrina_l10_v1'))||{};d[key]=val;localStorage.setItem('sabrina_l10_v1',JSON.stringify(d));const s=document.getElementById('l10-'+key+'-saved');if(s){s.style.display='block';setTimeout(()=>s.style.display='none',2000);}}catch(e){}},600);}
 
 // HISTORY
 (function(){const now=new Date();if(now.getDay()===0&&S[WK]&&Object.keys(S[WK]).length){const existing=S.history.find(h=>h._wk===WK);if(!existing){S.history.push({...S[WK],_wk:WK});if(S.history.length>8)S.history.shift();sv(S);}}})();
-setTimeout(rF15,3000);
-</script>
-<script>rF15();setTimeout(rF15,500);try{rTD()}catch(e){}setTimeout(function(){try{rTD()}catch(e){}},500);try{rReachoutLog()}catch(e){}setTimeout(function(){try{rReachoutLog()}catch(e){}},500);</script>
-
-<script>
-(function(){
-var K='sabrina_joke',hr=Math.floor(Date.now()/3600000);
-try{var x=JSON.parse(localStorage.getItem(K));if(x&&x.h===hr){var e=document.getElementById('djc');if(e)e.textContent=x.j;return;}}catch(e2){}
-fetch('https://icanhazdadjoke.com/',{headers:{'Accept':'application/json'}})
-.then(function(r){return r.json();})
-.then(function(d){
-try{localStorage.setItem(K,JSON.stringify({h:hr,j:d.joke}));}catch(e3){}
-var el=document.getElementById('djc');if(el)el.textContent=d.joke;
-}).catch(function(){
-var el=document.getElementById('djc');
-if(el)el.textContent="Why don't scientists trust atoms? Because they make up everything!";
-});
-})();
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-<script>
-(function(){
-var K='sab_layout';
-document.querySelectorAll('main>.card').forEach(function(c,i){
-  var t=c.querySelector('.ct');
-  c.dataset.lid=t?t.textContent.trim().replace(/\W+/g,'_').slice(0,20):'c'+i;
-});
-function restore(){
-  try{
-    var d=JSON.parse(localStorage.getItem(K));
-    if(!d)return;
-    if(d.s)document.querySelectorAll('main>.card').forEach(function(c){
-      var z=d.s[c.dataset.lid];if(z){if(z.w)c.style.width=z.w;if(z.h)c.style.height=z.h;}
-    });
-    if(d.o&&d.o.length){
-      var m=document.querySelector('main'),mp={};
-      document.querySelectorAll('main>.card').forEach(function(c){mp[c.dataset.lid]=c;});
-      d.o.forEach(function(lid){if(mp[lid])m.appendChild(mp[lid]);});
-    }
-  }catch(e){}
-}
-function save(){
-  try{
-    var s={},o=[];
-    document.querySelectorAll('main>.card').forEach(function(c){
-      if(c.dataset.lid){o.push(c.dataset.lid);s[c.dataset.lid]={w:c.style.width||'',h:c.style.height||''};}
-    });
-    localStorage.setItem(K,JSON.stringify({o:o,s:s}));
-  }catch(e){}
-}
-restore();
-var me=document.querySelector('main');
-if(me&&typeof Sortable!=='undefined')
-  Sortable.create(me,{animation:150,handle:'.ch',ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:save});
-if(window.ResizeObserver){
-  var ro=new ResizeObserver(save);
-  document.querySelectorAll('main>.card').forEach(function(c){ro.observe(c);});
-}
-})();
 </script>
 </body>
 </html>

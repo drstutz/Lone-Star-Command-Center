@@ -366,12 +366,6 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
         <textarea id="l10-green" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;" placeholder="What did you or the team get caught doing really well this week?" oninput="saveL10('green',this.value)"></textarea>
         <div id="l10-green-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
       </div>
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F4AA; Monthly Courage Commitment</div>
-        <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">One thing you're committing to do this month that takes courage &mdash; something that pushes you outside your comfort zone</div>
-        <textarea id="l10-courage" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;" placeholder="What's your courage commitment this month?" oninput="saveL10('courage',this.value)"></textarea>
-        <div id="l10-courage-saved" style="font-size:10px;color:#1A7F4B;display:none;margin-top:2px;">&#x2713; Saved</div>
-      </div>
     </div>
   </div>
 
@@ -796,7 +790,7 @@ const L10_KEY = 'maddy_l10_v1';
 function loadL10(){
   try{
     const d = JSON.parse(localStorage.getItem(L10_KEY)) || {};
-    ['frog','green','courage'].forEach(k=>{
+    ['frog','green'].forEach(k=>{
       const el = document.getElementById('l10-'+k);
       if(el && d[k]) el.value = d[k];
     });
