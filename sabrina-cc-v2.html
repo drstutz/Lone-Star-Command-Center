@@ -494,16 +494,16 @@ function renderCWItems(id,items){
   const el=document.getElementById('cwi-list-'+id);if(!el)return;
   const open=items.filter(function(x){return !x.done;}),done=items.filter(function(x){return x.done;});
   el.innerHTML=[].concat(open,done).map(function(it){
-    return '<div class="todo-item'+(it.done?' done':'')+'"><div class="check-box" onclick="toggleCWItem(''+id+'',''+it.id+'')">'+
-      (it.done?'&#x2713;':'')+'</div><div class="check-text">'+it.text+'</div><button class="todo-del" onclick="event.stopPropagation();deleteCWItem(''+id+'',''+it.id+'')">&#xD7;</button></div>';
+    return '<div class="todo-item'+(it.done?' done':'')+'"><div class="check-box" onclick="toggleCWItem(\''+id+'\',\''+it.id+'\')">'+
+      (it.done?'&#x2713;':'')+'</div><div class="check-text">'+it.text+'</div><button class="todo-del" onclick="event.stopPropagation();deleteCWItem(\''+id+'\',\''+it.id+'\')">&#xD7;</button></div>';
   }).join('');
 }
 function renderCW(cw){
   const div=document.createElement('div');
   div.className='card';div.id='cw-'+cw.id;div.setAttribute('data-card-id','cw-'+cw.id);
   if(cw.span>1)div.style.gridColumn='span '+cw.span;
-  div.innerHTML='<div class="ch"><span class="ct">'+cw.icon+' '+cw.title+'</span><button class="cw-del" onclick="deleteWidget(''+cw.id+'')">&#x1F5D1;</button></div>'+
-    '<div class="cb"><div class="todo-input-row"><input class="todo-input" id="cwi-inp-'+cw.id+'" placeholder="Add item..." onkeydown="if(event.key==='Enter')addCWItem(''+cw.id+'')"><button class="todo-add-btn" onclick="addCWItem(''+cw.id+'')">+</button></div><div id="cwi-list-'+cw.id+'"></div></div>';
+  div.innerHTML='<div class="ch"><span class="ct">'+cw.icon+' '+cw.title+'</span><button class="cw-del" onclick="deleteWidget(\''+cw.id+'\')">&#x1F5D1;</button></div>'+
+    '<div class="cb"><div class="todo-input-row"><input class="todo-input" id="cwi-inp-'+cw.id+'" placeholder="Add item..." onkeydown="if(event.key===\'Enter\')addCWItem(\''+cw.id+'\')"><button class="todo-add-btn" onclick="addCWItem(\''+cw.id+'\')">+</button></div><div id="cwi-list-'+cw.id+'"></div></div>';
   const ab=document.getElementById('add-widget-btn');
   const main=document.querySelector('main');
   if(ab)main.insertBefore(div,ab);else main.appendChild(div);
