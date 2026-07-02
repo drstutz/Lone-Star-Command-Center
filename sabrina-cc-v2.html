@@ -281,7 +281,7 @@ function tick(){const now=new Date(),h=now.getHours(),m=now.getMinutes();const a
 tick();setInterval(tick,20000);
 
 // WEEK LABEL
-(()=>{const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),mn=new Date(d);mn.setDate(diff);const fr=new Date(mn);fr.setDate(mn.getDate()+4);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];document.getElementById("wl").textContent="Week of "+mo[mn.getMonth()]+" "+mn.getDate()+" – "+mo[fr.getMonth()]+" "+fr.getDate();})();
+(()=>{const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),mn=new Date(d);mn.setDate(diff);const fr=new Date(mn);fr.setDate(mn.getDate()+4);const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const _wl=document.getElementById("wl");if(_wl)_wl.textContent="Week of "+mo[mn.getMonth()]+" "+mn.getDate()+" – "+mo[fr.getMonth()]+" "+fr.getDate();})();
 
 // STATE
 const SK="sabrina_cc_v1";
