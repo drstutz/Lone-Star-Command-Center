@@ -741,7 +741,7 @@ const EMOJI_OPTS=['📋','✅','⭐','🎯','📌','💡','📞','📊','🏆','
 let awIcon='📋',awSpan=1;
 function openWidgetModal(){
   const g=document.getElementById('aw-emoji-grid');
-  g.innerHTML=EMOJI_OPTS.map(e=>'<span class="emoji-opt'+(e===awIcon?' sel':'')+'" onclick="selectEmoji(this,''+e+'')">'+e+'</span>').join('');
+  g.innerHTML=EMOJI_OPTS.map(e=>'<span class="emoji-opt'+(e===awIcon?' sel':'')+'" onclick="selectEmoji(this,\''+e+'\')">'+e+'</span>').join('');
   document.getElementById('aw-title').value='';
   document.getElementById('aw-modal').classList.add('open');
   setTimeout(function(){document.getElementById('aw-title').focus();},60);
