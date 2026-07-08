@@ -401,7 +401,7 @@ function rReachoutLog(){const count=S.rlog[TK].length,goal=20,pct=Math.min(100,M
 rReachoutLog();
 
 // FINAL 15 — Sabrina's closing duties (placeholder — update with her actual list)
-const F15=["SHS Done (D2/PR)","ROF Financial Agreements","GR Accountability","Special Occasion Cards","Everything in Starting Position","Weekly Scorecard Updated"];
+const F15=["SHS Done (D2/PR)","ROF Financial Agreements","GR Accountability","Special Occasion Cards","Everything in Starting Position","Weekly Scorecard Updated","Billing"];
 let pF=0;
 function tF15(i,el){S.f15[TK][i]=!S.f15[TK][i];sv(S);const d=F15.filter((_,j)=>S.f15[TK][j]).length;if(d>pF)confetti(el);if(d===F15.length)setTimeout(()=>confetti(),300);pF=d;rF15();}
 function rF15(){const d=F15.filter((_,i)=>S.f15[TK][i]).length;document.getElementById("fc").textContent=d+"/"+F15.length+" done";document.getElementById("fb").innerHTML=F15.map((t,i)=>{const dn=!!S.f15[TK][i];return`<div class="f15i ${dn?"done":""}" onclick="tF15(${i},this)"><div class="f15n">${i+1}</div><div class="f15t">${t}</div><div class="f15c"></div></div>`;}).join("");pF=d;}
