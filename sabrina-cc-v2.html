@@ -159,6 +159,7 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
     .cw-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:14px;padding:0;transition:color .15s;}
     .cw-del:hover{color:var(--red);}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <canvas id="cc"></canvas>
@@ -325,10 +326,42 @@ tick();setInterval(tick,20000);
 const SK="sabrina_cc_v1";
 function gwk(){const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),m=new Date(d);m.setDate(diff);return m.getFullYear()+"-"+(m.getMonth()+1)+"-"+m.getDate();}
 function ld(){try{return JSON.parse(localStorage.getItem(SK))||{};}catch{return{};}}
-function sv(s){localStorage.setItem(SK,JSON.stringify(s));}
+function sv(s){localStorage.setItem(SK,JSON.stringify(s));pushRemote(s);}
+
+// ── CLOUD SYNC (Supabase) ───────────────────────────────────────
+const SB_URL='https://nadnplpmgwawuoyggjij.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hZG5wbHBtZ3dhd3VveWdnamlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDg0NTgsImV4cCI6MjA5NzgyNDQ1OH0.a18I1NPh5T2-bWsCLco_fC31DE6xXhDUdxG2Gqjr9kg';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const DASH_ID='sabrina';
+let _pushTimer=null;
+function pushRemote(s){
+  clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(async()=>{
+    try{await sb.from('dashboard_state').upsert({id:DASH_ID,data:s,updated_at:new Date().toISOString()});}catch(e){}
+  },400);
+}
+async function pullRemote(){
+  try{
+    const {data,error}=await sb.from('dashboard_state').select('data').eq('id',DASH_ID).single();
+    if(error||!data)return;
+    S=data.data||{};
+    localStorage.setItem(SK,JSON.stringify(S));
+    ensureDefaults();
+    rSC();rCountdown();rReachoutLog();rF15();rTD();
+    if(typeof renderAllCWs==='function')renderAllCWs();
+    if(typeof applyCardOrder==='function')applyCardOrder();
+  }catch(e){}
+}
+function ensureDefaults(){
+  if(!S[WK])S[WK]={};if(!S.todos)S.todos=[];if(!S.f15)S.f15={};if(!S.f15[TK])S.f15[TK]={};
+  if(!S.rlog)S.rlog={};if(!S.rlog[TK])S.rlog[TK]=[];if(!S.history)S.history=[];
+}
+
 let S=ld();const WK=gwk(),TK=new Date().toDateString();
-if(!S[WK])S[WK]={};if(!S.todos)S.todos=[];if(!S.f15)S.f15={};if(!S.f15[TK])S.f15[TK]={};
-if(!S.rlog)S.rlog={};if(!S.rlog[TK])S.rlog[TK]=[];if(!S.history)S.history=[];
+ensureDefaults();
+pullRemote();
+setInterval(pullRemote,20000);
+window.addEventListener('focus',pullRemote);
 
 // SCORECARD — Sabrina's metrics
 const MX=[
@@ -410,19 +443,7 @@ function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{tr
       c.insertBefore(h,c.firstChild);
     });
     // Restore saved card order
-    (function(){
-      try{
-        var saved=JSON.parse(localStorage.getItem('_card_order_'+location.pathname));
-        if(!saved||!saved.length)return;
-        var m=document.querySelector('main');
-        var ab=document.getElementById('add-widget-btn');
-        saved.forEach(function(id){
-          if(id==='add-widget-btn')return;
-          var c=m.querySelector('[data-card-id="'+id+'"]');
-          if(c){if(ab)m.insertBefore(c,ab);else m.appendChild(c);}
-        });
-      }catch(e){}
-    })();
+    applyCardOrder();
     Sortable.create(main,{
       animation:220,
       ghostClass:'sortable-ghost',
@@ -430,7 +451,7 @@ function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{tr
       dragClass:'sortable-drag',
       delay:180,
       delayOnTouchOnly:false,
-      filter:'input,textarea,button,select,a,.rlog-input,.rlog-add',
+      filter:'input,textarea,button,select,a,.rlog-input,.rlog-add,.ti2,.tck2,.tdel,.tdrag',
       preventOnFilter:false,
       onChoose:function(e){e.item.classList.add('drag-ready');},
       onUnchoose:function(e){e.item.classList.remove('drag-ready');},
@@ -444,7 +465,6 @@ function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{tr
 })();
 
 // ── CUSTOM WIDGETS ───────────────────────────────────────────────────
-const CW_KEY='_cw_'+location.pathname;
 const EMOJI_OPTS=['📋','✅','⭐','🎯','📌','💡','📞','📊','🏆','💪','🔥','📈','⚡','🎉','🔔','📝','🗓','💼','🩺','📣','🧠','🔑','❤️','🌟','🎪','🚀','⚙️','🛡️','💰','🤝','📚','🏋️','🎸','🎨','📷','🏠','🌎','🌱','🍎','☕'];
 let awIcon='📋',awSpan=1;
 function openWidgetModal(){
@@ -457,13 +477,31 @@ function openWidgetModal(){
 function closeWidgetModal(){document.getElementById('aw-modal').classList.remove('open');}
 function selectEmoji(el,em){document.querySelectorAll('.emoji-opt').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');awIcon=em;}
 function selectSpan(el,n){document.querySelectorAll('.span-btn').forEach(function(x){x.classList.remove('active');});el.classList.add('active');awSpan=n;}
-function loadCWs(){try{return JSON.parse(localStorage.getItem(CW_KEY))||[];}catch(e){return[];}}
-function saveCWs(a){localStorage.setItem(CW_KEY,JSON.stringify(a));}
+function loadCWs(){if(!S.customWidgets)S.customWidgets=[];return S.customWidgets;}
+function saveCWs(a){S.customWidgets=a;sv(S);}
 function saveCardOrder(){
   try{
     var order=[].slice.call(document.querySelectorAll('main > .card[data-card-id]')).map(function(c){return c.getAttribute('data-card-id');});
     localStorage.setItem('_card_order_'+location.pathname,JSON.stringify(order));
+    S.cardOrder=order;sv(S);
   }catch(err){}
+}
+function applyCardOrder(){
+  try{
+    var order=S.cardOrder;
+    if(!order||!order.length)return;
+    var m=document.querySelector('main');
+    var ab=document.getElementById('add-widget-btn');
+    order.forEach(function(id){
+      if(id==='add-widget-btn')return;
+      var c=m.querySelector('[data-card-id="'+id+'"]');
+      if(c){if(ab)m.insertBefore(c,ab);else m.appendChild(c);}
+    });
+  }catch(e){}
+}
+function renderAllCWs(){
+  document.querySelectorAll('main > .card[id^="cw-"]').forEach(function(el){el.remove();});
+  loadCWs().forEach(function(cw){renderCW(cw);});
 }
 function createWidget(){
   const title=document.getElementById('aw-title').value.trim();
@@ -537,4 +575,4 @@ loadCWs().forEach(function(cw){renderCW(cw);});
 </div>
 
 </body>
-</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+</html>
