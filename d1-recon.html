@@ -218,7 +218,8 @@ async function loadActiveCase(row) {
     const apptDate = row.appointment_date
       ? new Date(row.appointment_date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})
       : new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    generateAndStoreConsultPDF(row.patient_name, apptDate, row.id);
+    const intakeFile = caseFiles['intake'];
+    generateAndStoreConsultPDF(row.patient_name, apptDate, row.id, { fileName: intakeFile.file_name, fileType: intakeFile.file_type, fileDataUrl: intakeFile.file_data });
   }
 }
 
@@ -313,7 +314,7 @@ async function handleFileSelect(key, input) {
     if (key === 'intake') {
       const patientName = document.getElementById('ac-name').textContent;
       const apptDate = document.getElementById('ac-date').textContent;
-      generateAndStoreConsultPDF(patientName, apptDate, activeCaseId);
+      generateAndStoreConsultPDF(patientName, apptDate, activeCaseId, { fileName: file.name, fileType: file.type, fileDataUrl: b64 });
     }
   } catch(err) {
     alert('Upload failed: '+err.message);
@@ -387,7 +388,98 @@ function openConsultPDF(e) {
 }
 
 /* ── CONSULT PDF: GENERATE & STORE ── */
-async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
+async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, intakeData) {
+  // ── PERSONALIZE FROM ACTUAL INTAKE CONTENT ──
+  let personalized = null;
+  if (intakeData && intakeData.fileDataUrl) {
+    showToast('🧠 Reading intake and personalizing consult guide…');
+    try {
+      const resp = await fetch('/api/generate-consult-prep', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          patientName,
+          fileName: intakeData.fileName,
+          fileType: intakeData.fileType,
+          fileDataUrl: intakeData.fileDataUrl,
+        }),
+      });
+      const json = await resp.json();
+      if (!resp.ok || json.error) {
+        console.error('Consult prep generation error:', json);
+        showToast('⚠️ Could not personalize from intake — generated a generic guide instead. Check console / retry upload.');
+        personalized = null;
+      } else {
+        personalized = json;
+      }
+    } catch (err) {
+      console.error('Consult prep generation failed:', err);
+      showToast('⚠️ Could not reach personalization service — generated a generic guide instead.');
+      personalized = null;
+    }
+  }
+
+  // Fallback content used ONLY if personalization failed or no intake data was provided
+  const FALLBACK = {
+    leadingDifferential: '',
+    questions: {
+      chiefComplaint: [
+        "What brings you in today? What is your primary concern?",
+        "How long have you had this problem, and how did it start? (sudden, gradual, injury, etc.)",
+        "Have you dealt with this before? What happened then?",
+        "On a scale of 0–10, rate your pain right now. What's your average over the past week?",
+      ],
+      painProfile: [
+        "Describe the quality: sharp / dull / burning / aching / shooting / throbbing / pressure?",
+        "Where exactly is the pain? Does it travel or radiate anywhere?",
+        "Is it constant, or does it come and go? Any pattern — morning, evening, activity?",
+        "What makes it worse? What makes it better? (positions, movement, heat, ice, rest)",
+      ],
+      functionalImpact: [
+        "How does this affect your sleep — can you find a comfortable position?",
+        "How much is this impacting your work or daily activities? Rate function 0–10 (not just pain).",
+        "Is there a specific activity, sport, or event you're trying to get back to?",
+      ],
+      historyGoals: [
+        "What treatments have you tried? (medication, PT, massage, prior chiro, surgery) Did anything help?",
+        "Any prior imaging (X-ray, MRI, CT scan)? What did it show?",
+        "What does improvement look like for you — pain relief, full function, or long-term correction?",
+        "What are your biggest questions or concerns about care?",
+      ],
+    },
+    examPriority: [
+      { region: 'CERVICAL / UPPER EXTREMITY', tests: [
+        ["Spurling's Test", 'Nerve root compression / foraminal stenosis'],
+        ['Cervical Distraction', 'Foraminal stenosis relief'],
+        ['Upper Limb Tension (ULTT)', 'Neurodynamic / brachial plexus tension'],
+        ['Compression Test', 'Facet / disc loading'],
+        ['Cervical ROM < 60°', 'Segmental restriction / joint mobility'],
+      ]},
+      { region: 'LUMBAR / LOWER EXTREMITY', tests: [
+        ["SLR / Kemp's Test", 'L4–S1 nerve root, disc herniation'],
+        ['Valsalva / Bowstring', 'Increased intradiscal pressure / disc'],
+        ["FABER / Patrick's", 'SI joint dysfunction / hip pathology'],
+        ["Ely's / Thomas Test", 'Hip flexor tightness / psoas involvement'],
+        ['Slump Test', 'Neurodynamic / lumbar nerve tension'],
+      ]},
+      { region: 'THORACIC', tests: [
+        ["Adam's Forward Bend", 'Scoliosis / rotational deformity'],
+        ['Rib Compression', 'Rib dysfunction / stress fracture'],
+        ['Prone Segmental Palpation', 'Thoracic joint restriction / tenderness'],
+      ]},
+      { region: 'SHOULDER / UPPER EXTREMITY', tests: [
+        ['Empty Can / Full Can', 'Supraspinatus / rotator cuff integrity'],
+        ['Hawkins-Kennedy', 'Subacromial impingement'],
+        ["Neer's Sign", 'Subacromial impingement'],
+        ["Speed's / Yergason's", 'Biceps tendon / SLAP lesion'],
+        ['Cross-Body Adduction', 'AC joint dysfunction'],
+      ]},
+    ],
+  };
+
+  const R = personalized || FALLBACK;
+  const usedFallback = !personalized;
+
   // Wait up to 8s for jsPDF CDN to finish loading
   if (!window.jspdf) {
     await new Promise(resolve => {
@@ -459,35 +551,24 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
   }
 
   p1Section('A — CHIEF COMPLAINT');
-  p1Question('What brings you in today? What is your primary concern?');
-  p1Question('How long have you had this problem, and how did it start? (sudden, gradual, injury, etc.)');
-  p1Question('Have you dealt with this before? What happened then?');
-  p1Question('On a scale of 0–10, rate your pain right now. What\'s your average over the past week?');
+  R.questions.chiefComplaint.forEach(q => p1Question(q));
   y += 3;
 
   p1Section('B — PAIN PROFILE');
-  p1Question('Describe the quality: sharp / dull / burning / aching / shooting / throbbing / pressure?');
-  p1Question('Where exactly is the pain? Does it travel or radiate anywhere?');
-  p1Question('Is it constant, or does it come and go? Any pattern — morning, evening, activity?');
-  p1Question('What makes it worse? What makes it better? (positions, movement, heat, ice, rest)');
+  R.questions.painProfile.forEach(q => p1Question(q));
   y += 3;
 
   p1Section('C — FUNCTIONAL IMPACT');
-  p1Question('How does this affect your sleep — can you find a comfortable position?');
-  p1Question('How much is this impacting your work or daily activities? Rate function 0–10 (not just pain).');
-  p1Question('Is there a specific activity, sport, or event you\'re trying to get back to?');
+  R.questions.functionalImpact.forEach(q => p1Question(q));
   y += 3;
 
   p1Section('D — HISTORY & GOALS');
-  p1Question('What treatments have you tried? (medication, PT, massage, prior chiro, surgery) Did anything help?');
-  p1Question('Any prior imaging (X-ray, MRI, CT scan)? What did it show?');
-  p1Question('What does improvement look like for you — pain relief, full function, or long-term correction?');
-  p1Question('What are your biggest questions or concerns about care?');
+  R.questions.historyGoals.forEach(q => p1Question(q));
 
   // Page 1 footer
   doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 270, RM, 270);
   doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...GY);
-  doc.text(`${patientName}  ·  D1 Consultation Guide  ·  Page 1 of 2`, LM, 275);
+  doc.text(`${patientName}  ·  D1 Consultation Guide  ·  Page 1 of 2${usedFallback ? '  ·  ⚠ GENERIC (personalization unavailable)' : ''}`, LM, 275);
 
   // ══════════════════════════════════════════════
   //  PAGE 2 — CLINICAL DECISION SUPPORT
@@ -506,6 +587,14 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
   const COL2 = 112;
   doc.setDrawColor(...LG); doc.setLineWidth(0.4);
   doc.line(COL2-1, 22, COL2-1, 268);
+
+  // Leading differential (from personalized analysis)
+  let examStartY = 27;
+  if (R.leadingDifferential) {
+    doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...GY);
+    const diffLines = doc.splitTextToSize('Leading differential: ' + R.leadingDifferential, COL2-5-LM);
+    doc.text(diffLines, LM, 23);
+  }
 
   // Column headers
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...BK);
@@ -538,35 +627,9 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
     yL += 2;
   }
 
-  examRegion('CERVICAL / UPPER EXTREMITY', [
-    ['Spurling\'s Test',         'Nerve root compression / foraminal stenosis'],
-    ['Cervical Distraction',      'Foraminal stenosis relief'],
-    ['Upper Limb Tension (ULTT)', 'Neurodynamic / brachial plexus tension'],
-    ['Compression Test',         'Facet / disc loading'],
-    ['Cervical ROM < 60°',       'Segmental restriction / joint mobility'],
-  ]);
-
-  examRegion('LUMBAR / LOWER EXTREMITY', [
-    ['SLR / Kemp\'s Test',       'L4–S1 nerve root, disc herniation'],
-    ['Valsalva / Bowstring',      'Increased intradiscal pressure / disc'],
-    ['FABER / Patrick\'s',       'SI joint dysfunction / hip pathology'],
-    ['Ely\'s / Thomas Test',     'Hip flexor tightness / psoas involvement'],
-    ['Slump Test',               'Neurodynamic / lumbar nerve tension'],
-  ]);
-
-  examRegion('THORACIC', [
-    ['Adam\'s Forward Bend',     'Scoliosis / rotational deformity'],
-    ['Rib Compression',          'Rib dysfunction / stress fracture'],
-    ['Prone Segmental Palpation','Thoracic joint restriction / tenderness'],
-  ]);
-
-  examRegion('SHOULDER / UPPER EXTREMITY', [
-    ['Empty Can / Full Can',     'Supraspinatus / rotator cuff integrity'],
-    ['Hawkins-Kennedy',          'Subacromial impingement'],
-    ['Neer\'s Sign',             'Subacromial impingement'],
-    ['Speed\'s / Yergason\'s',  'Biceps tendon / SLAP lesion'],
-    ['Cross-Body Adduction',     'AC joint dysfunction'],
-  ]);
+  R.examPriority.forEach(region => {
+    examRegion(region.region, region.tests);
+  });
 
   // ─── RIGHT COLUMN ───
   let yR = 27;
@@ -644,7 +707,7 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId) {
   // Page 2 footer
   doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 270, RM, 270);
   doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...GY);
-  doc.text(`${patientName}  ·  Clinical Decision Support  ·  Page 2 of 2`, LM, 275);
+  doc.text(`${patientName}  ·  Clinical Decision Support  ·  Page 2 of 2${usedFallback ? '  ·  ⚠ GENERIC (personalization unavailable)' : ''}`, LM, 275);
 
   // ── STORE IN SUPABASE (no auto-download) ──
   try {
