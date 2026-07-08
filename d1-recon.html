@@ -588,22 +588,24 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
   doc.setDrawColor(...LG); doc.setLineWidth(0.4);
   doc.line(COL2-1, 22, COL2-1, 268);
 
-  // Leading differential (from personalized analysis)
-  let examStartY = 27;
+  // Leading differential (from personalized analysis) — drawn first, header position depends on its height
+  let headerY = 27;
   if (R.leadingDifferential) {
     doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...GY);
     const diffLines = doc.splitTextToSize('Leading differential: ' + R.leadingDifferential, COL2-5-LM);
     doc.text(diffLines, LM, 23);
+    // Each wrapped line is ~3.2mm at 7pt; push the header down to clear all of them, plus a small gap
+    headerY = 23 + diffLines.length * 3.2 + 4;
   }
 
   // Column headers
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...BK);
-  doc.text('ORTHOPEDIC EXAM CHECKLIST', LM, 27);
+  doc.text('ORTHOPEDIC EXAM CHECKLIST', LM, headerY);
   doc.setDrawColor(...BK); doc.setLineWidth(0.4);
-  doc.line(LM, 28.5, COL2-5, 28.5);
+  doc.line(LM, headerY+1.5, COL2-5, headerY+1.5);
 
   // ─── LEFT COLUMN ───
-  let yL = 35;
+  let yL = headerY + 8;
   const COL1W = COL2-5-LM;
 
   function examRegion(title, tests) {
