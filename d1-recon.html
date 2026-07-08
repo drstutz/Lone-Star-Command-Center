@@ -734,7 +734,8 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
   try {
     const pdfDataUrl = doc.output('datauristring');
     const safeName = patientName.replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_');
-    const existing = caseFiles['consult_questions'];
+    const { data: existingRows } = await sb.from('d1_files').select('id').eq('case_id',caseId).eq('slot_key','consult_questions');
+    const existing = existingRows && existingRows[0];
     let res;
     if (existing) {
       res = await sb.from('d1_files').update({
@@ -752,12 +753,17 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
         file_type:'application/pdf'
       }).select().single();
     }
-    if (!res.error) {
-      caseFiles['consult_questions'] = res.data;
-      renderSlots();
+    if (res.error) {
+      console.error('PDF store error:', res.error);
+      showToast('⚠️ Could not save prep sheet — please retry the upload.');
+    } else {
+      if (caseId === activeCaseId) { caseFiles['consult_questions'] = res.data; renderSlots(); }
       showToast('📋 Consult prep sheet ready — click to open');
     }
-  } catch(err) { console.error('PDF store error:', err); }
+  } catch(err) {
+    console.error('PDF store error:', err);
+    showToast('⚠️ Could not save prep sheet — please retry the upload.');
+  }
 }
 
 /* ══════════════ D1 RECON — FULL 9-SECTION REPORT ══════════════ */
@@ -918,7 +924,8 @@ async function generateAndStoreD1ReportPDF(patientName, apptDateStr, caseId, rep
   try {
     const pdfDataUrl = doc.output('datauristring');
     const safeName = patientName.replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_');
-    const existing = caseFiles['d1_report'];
+    const { data: existingRows } = await sb.from('d1_files').select('id').eq('case_id',caseId).eq('slot_key','d1_report');
+    const existing = existingRows && existingRows[0];
     let res;
     if (existing) {
       res = await sb.from('d1_files').update({
@@ -936,11 +943,17 @@ async function generateAndStoreD1ReportPDF(patientName, apptDateStr, caseId, rep
         file_type:'application/pdf'
       }).select().single();
     }
-    if (!res.error) {
-      caseFiles['d1_report'] = res.data;
+    if (res.error) {
+      console.error('D1 report PDF store error:', res.error);
+      showToast('⚠️ Could not save D1 Recon Report — please retry.');
+    } else {
+      if (caseId === activeCaseId) { caseFiles['d1_report'] = res.data; }
       showToast('📋 D1 Recon Report ready — click to open');
     }
-  } catch(err) { console.error('D1 report PDF store error:', err); }
+  } catch(err) {
+    console.error('D1 report PDF store error:', err);
+    showToast('⚠️ Could not save D1 Recon Report — please retry.');
+  }
 }
 
 /* ── TOAST ── */
