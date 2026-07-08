@@ -80,6 +80,16 @@
     .pdf-toast{position:fixed;bottom:28px;right:28px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.88rem;box-shadow:0 4px 18px rgba(0,0,0,0.22);z-index:999;display:flex;align-items:center;gap:10px;animation:slideUp .25s ease;}
     @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
     .download-wrap{display:flex;justify-content:center;padding:4px 0 2px;}
+    .recon-report-wrap{border-top:1px solid var(--border);margin-top:14px;padding-top:14px;text-align:center;}
+    .recon-btn{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.04em;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s;}
+    .recon-btn:hover{background:var(--red);}
+    .recon-btn:disabled{background:var(--muted);cursor:default;}
+    .recon-status{font-size:0.85rem;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;}
+    .recon-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:reconspin .8s linear infinite;}
+    @keyframes reconspin{to{transform:rotate(360deg)}}
+    .recon-error{color:var(--red);font-size:0.85rem;margin-bottom:8px;}
+    .recon-open-link{color:var(--green);font-weight:700;text-decoration:none;font-size:0.95rem;}
+    .recon-open-link:hover{text-decoration:underline;}
     .cases-list{display:flex;flex-direction:column;gap:9px;}
     .case-card{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 6px rgba(0,0,0,0.05);padding:15px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
     .case-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-1px);}
@@ -136,6 +146,7 @@
           <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
         </div>
         <div class="slots" id="slots-list"></div>
+        <div class="recon-report-wrap" id="recon-report-wrap" style="display:none"></div>
         <div class="download-wrap" id="download-wrap" style="display:none">
           <button class="btn btn-download" id="dl-btn" onclick="downloadAll()">📥 Download All Files</button>
         </div>
@@ -279,13 +290,21 @@ function renderConsultSlot() {
 }
 
 function updateProgress() {
-  const count = Object.keys(caseFiles).filter(k => k !== 'consult_questions').length;
+  const count = Object.keys(caseFiles).filter(k => k !== 'consult_questions' && k !== 'd1_report').length;
   const reqDone = SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length;
   const ready = count >= 4 || reqDone >= 4;
   document.getElementById('progress-fill').style.width = Math.min(100,Math.round(count/5*100))+'%';
   document.getElementById('progress-label').textContent = count+' of 5 files uploaded';
   document.getElementById('download-wrap').style.display = ready ? '' : 'none';
   if (ready && activeCaseId) sb.from('d1_cases').update({status:'ready'}).eq('id',activeCaseId).then(()=>{});
+  refreshReconSection();
+}
+
+async function refreshReconSection() {
+  if (!activeCaseId) return;
+  if (!isCaseReadyForRecon()) { document.getElementById('recon-report-wrap').style.display = 'none'; return; }
+  const { data } = await sb.from('d1_cases').select('*').eq('id', activeCaseId).single();
+  if (data) renderReconReportSection(data);
 }
 
 /* ── FILE UPLOAD ── */
@@ -741,6 +760,189 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
   } catch(err) { console.error('PDF store error:', err); }
 }
 
+/* ══════════════ D1 RECON — FULL 9-SECTION REPORT ══════════════ */
+let reconPollTimer = null;
+let reconPollAttempts = 0;
+const RECON_SECTIONS = [
+  ['differentialDiagnosis', 'DIFFERENTIAL DIAGNOSIS'],
+  ['severity', 'SEVERITY'],
+  ['prognosis', 'PROGNOSIS'],
+  ['carePlan', 'CARE PLAN'],
+  ['day2Story', 'DAY 2 STORY'],
+  ['reExamStrategy', 'RE-EXAM STRATEGY'],
+  ['coachingFlags', 'COACHING FLAGS'],
+  ['keyTakeaways', 'KEY TAKEAWAYS'],
+  ['caseSummary', 'CASE SUMMARY'],
+];
+
+function isCaseReadyForRecon() {
+  const count = Object.keys(caseFiles).filter(k => k !== 'consult_questions' && k !== 'd1_report').length;
+  const reqDone = SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length;
+  return count >= 4 || reqDone >= 4;
+}
+
+function renderReconReportSection(row) {
+  const wrap = document.getElementById('recon-report-wrap');
+  if (!isCaseReadyForRecon()) { wrap.style.display = 'none'; if (reconPollTimer) { clearInterval(reconPollTimer); reconPollTimer=null; } return; }
+  wrap.style.display = '';
+  const status = row.report_status || 'not_started';
+
+  if (status === 'ready' && row.report_json) {
+    wrap.innerHTML = `<a href="#" class="recon-open-link" onclick="openD1ReportPDF(event)">📋 Open D1 Recon Report →</a>`;
+  } else if (status === 'generating') {
+    wrap.innerHTML = `<div class="recon-status"><span class="recon-spinner"></span> Generating full D1 Recon Report — this can take a minute or two…</div>`;
+    startReconPolling();
+  } else if (status === 'error') {
+    wrap.innerHTML = `<div class="recon-error">⚠️ Report generation failed: ${esc(row.report_error||'unknown error')}</div>
+      <button class="recon-btn" onclick="startD1Report()">🔁 Retry Generate D1 Recon Report</button>`;
+  } else {
+    wrap.innerHTML = `<button class="recon-btn" onclick="startD1Report()">🧠 Generate D1 Recon Report</button>`;
+  }
+}
+
+async function startD1Report() {
+  if (!activeCaseId) return;
+  await sb.from('d1_cases').update({ report_status: 'generating', report_error: null }).eq('id', activeCaseId);
+  const { data } = await sb.from('d1_cases').select('*').eq('id', activeCaseId).single();
+  if (data) renderReconReportSection(data);
+  try {
+    await fetch('/api/generate-d1-report', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ caseId: activeCaseId }),
+    });
+  } catch (err) { console.error('Failed to kick off D1 report generation:', err); }
+  startReconPolling();
+}
+
+function startReconPolling() {
+  if (reconPollTimer) return; // already polling
+  reconPollAttempts = 0;
+  reconPollTimer = setInterval(async () => {
+    reconPollAttempts++;
+    if (!activeCaseId) { clearInterval(reconPollTimer); reconPollTimer=null; return; }
+    const { data } = await sb.from('d1_cases').select('*').eq('id', activeCaseId).single();
+    if (!data) return;
+    if (data.report_status === 'ready' || data.report_status === 'error') {
+      clearInterval(reconPollTimer); reconPollTimer = null;
+      renderReconReportSection(data);
+      if (data.report_status === 'ready') {
+        const apptDate = document.getElementById('ac-date').textContent;
+        await generateAndStoreD1ReportPDF(document.getElementById('ac-name').textContent, apptDate, activeCaseId, data.report_json);
+      }
+    } else if (reconPollAttempts > 45) { // ~3 minutes
+      clearInterval(reconPollTimer); reconPollTimer = null;
+      await sb.from('d1_cases').update({ report_status: 'error', report_error: 'Timed out waiting for generation — please retry.' }).eq('id', activeCaseId);
+      const { data: fresh } = await sb.from('d1_cases').select('*').eq('id', activeCaseId).single();
+      if (fresh) renderReconReportSection(fresh);
+    }
+  }, 4000);
+}
+
+function openD1ReportPDF(e) {
+  e.preventDefault();
+  const f = caseFiles['d1_report'];
+  if (!f || !f.file_data) { alert('Report not available yet.'); return; }
+  try {
+    const b64 = f.file_data.split(',')[1];
+    const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+    const blob = new Blob([bytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url), 120000);
+  } catch(err) { alert('Could not open report: '+err.message); }
+}
+
+async function generateAndStoreD1ReportPDF(patientName, apptDateStr, caseId, reportJson) {
+  if (!window.jspdf) {
+    await new Promise(resolve => {
+      const t = Date.now(), id = setInterval(() => {
+        if (window.jspdf || Date.now()-t > 8000) { clearInterval(id); resolve(); }
+      }, 150);
+    });
+  }
+  if (!window.jspdf) { showToast('⚠️ PDF library failed to load — try refreshing'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'letter' });
+  const BK=[0,0,0], GY=[100,100,100], LG=[180,180,180];
+  const LM=13, RM=202.9;
+  const dateStr = apptDateStr || new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  let y = 22;
+  let pageNum = 1;
+
+  function drawHeader() {
+    doc.setDrawColor(...BK); doc.setLineWidth(1); doc.line(LM, 10, RM, 10);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...BK);
+    doc.text('LONE STAR CHIROPRACTIC', LM, 16);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...GY);
+    doc.text('D1 Recon Report  ·  '+patientName+'  ·  '+dateStr, RM, 16, {align:'right'});
+    doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 19, RM, 19);
+  }
+  function drawFooter() {
+    doc.setDrawColor(...LG); doc.setLineWidth(0.3); doc.line(LM, 270, RM, 270);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...GY);
+    doc.text(`${patientName}  ·  D1 Recon Report  ·  Page ${pageNum}`, LM, 275);
+  }
+  function newPage() {
+    drawFooter();
+    doc.addPage();
+    pageNum++;
+    y = 22;
+    drawHeader();
+  }
+  drawHeader();
+
+  RECON_SECTIONS.forEach(([key, title]) => {
+    const body = (reportJson && reportJson[key]) ? String(reportJson[key]) : '(not provided)';
+    if (y > 250) newPage();
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...BK);
+    doc.text(title, LM, y);
+    doc.setDrawColor(...BK); doc.setLineWidth(0.35);
+    doc.line(LM, y+1.5, RM, y+1.5);
+    y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...BK);
+    const paragraphs = body.split('\n');
+    paragraphs.forEach(para => {
+      if (!para.trim()) { y += 2; return; }
+      const lines = doc.splitTextToSize(para, RM-LM);
+      lines.forEach(line => {
+        if (y > 262) newPage();
+        doc.text(line, LM, y);
+        y += 4.6;
+      });
+    });
+    y += 5;
+  });
+  drawFooter();
+
+  try {
+    const pdfDataUrl = doc.output('datauristring');
+    const safeName = patientName.replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_');
+    const existing = caseFiles['d1_report'];
+    let res;
+    if (existing) {
+      res = await sb.from('d1_files').update({
+        file_name:`D1Recon_${safeName}.pdf`,
+        file_data:pdfDataUrl,
+        file_type:'application/pdf',
+        uploaded_at:new Date().toISOString()
+      }).eq('id',existing.id).select().single();
+    } else {
+      res = await sb.from('d1_files').insert({
+        case_id:caseId,
+        slot_key:'d1_report',
+        file_name:`D1Recon_${safeName}.pdf`,
+        file_data:pdfDataUrl,
+        file_type:'application/pdf'
+      }).select().single();
+    }
+    if (!res.error) {
+      caseFiles['d1_report'] = res.data;
+      showToast('📋 D1 Recon Report ready — click to open');
+    }
+  } catch(err) { console.error('D1 report PDF store error:', err); }
+}
+
 /* ── TOAST ── */
 function showToast(msg) {
   const t = document.createElement('div');
@@ -780,7 +982,7 @@ async function loadPastCases() {
   const {data:cases,error} = await sb.from('d1_cases').select('*,d1_files(slot_key)').order('created_at',{ascending:false});
   if (error||!cases||!cases.length) { el.innerHTML='<div class="empty-msg">No cases yet.<br>Create a case above to get started.</div>'; return; }
   el.innerHTML='<div class="cases-list">'+cases.map(c=>{
-    const slots = Array.isArray(c.d1_files) ? c.d1_files.filter(f=>f.slot_key!=='consult_questions') : [];
+    const slots = Array.isArray(c.d1_files) ? c.d1_files.filter(f=>f.slot_key!=='consult_questions' && f.slot_key!=='d1_report') : [];
     const n=slots.length;
     const d=c.appointment_date?new Date(c.appointment_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'No date';
     const ready=n>=4; const cur=c.id===activeCaseId;
