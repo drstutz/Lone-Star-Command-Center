@@ -95,8 +95,8 @@ export default async (req: Request, context: Context) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2000,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1500,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: contentBlocks }],
       }),
@@ -136,4 +136,3 @@ export default async (req: Request, context: Context) => {
 export const config: Config = {
   path: "/api/generate-consult-prep",
 };
-// redeploy trigger: env var refresh 1783521275
