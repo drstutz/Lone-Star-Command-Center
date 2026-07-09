@@ -389,17 +389,17 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:4px;">&#x1F4CA; Key Statistical Takeaways</div>
         <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Prepare 1-2 key stats to share with the group</div>
-        <textarea id="l10-stats" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="1. &#10;2. " oninput="saveL10('stats',this.value)"></textarea>
+        <div class="tir"><input class="ti" id="l10-stats-input" placeholder="Add a stat..." onkeydown="if(event.key==='Enter')addChecklist('l10Stats','l10-stats-input','l10-stats-list')"><button class="tab" onclick="addChecklist('l10Stats','l10-stats-input','l10-stats-list')">+</button></div><div id="l10-stats-list"></div>
       </div>
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F438; Frog Report</div>
         <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Hard conversations &middot; accountability &middot; difficult decisions &middot; problems solved &middot; responsibilities owned &middot; massive action taken</div>
-        <textarea id="l10-frog" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="What frog did you eat this week?" oninput="saveL10('frog',this.value)"></textarea>
+        <div class="tir"><input class="ti" id="l10-frog-input" placeholder="What frog did you eat this week?" onkeydown="if(event.key==='Enter')addChecklist('l10Frog','l10-frog-input','l10-frog-list')"><button class="tab" onclick="addChecklist('l10Frog','l10-frog-input','l10-frog-list')">+</button></div><div id="l10-frog-list"></div>
       </div>
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a2);margin-bottom:2px;">&#x1F7E2; Green Handed</div>
         <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;line-height:1.4;">Caught doing something right &mdash; a win worth celebrating</div>
-        <textarea id="l10-green" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);background:var(--off);outline:none;resize:vertical;min-height:70px;line-height:1.5;box-sizing:border-box;" placeholder="What did the team get caught doing well?" oninput="saveL10('green',this.value)"></textarea>
+        <div class="tir"><input class="ti" id="l10-green-input" placeholder="Add a win..." onkeydown="if(event.key==='Enter')addChecklist('l10Green','l10-green-input','l10-green-list')"><button class="tab" onclick="addChecklist('l10Green','l10-green-input','l10-green-list')">+</button></div><div id="l10-green-list"></div>
       </div>
     </div>
   </div>
@@ -489,7 +489,7 @@ async function pullRemote(){
     S=data.data||{};
     localStorage.setItem(SK,JSON.stringify(S));
     ensureDefaults();
-    rSC();rSched();rTodos();rPulse();
+    rSC();rSched();rTodos();rPulse();loadL10();
     if(typeof renderAllCWs==='function')renderAllCWs();
     if(typeof applyCardOrder==='function')applyCardOrder();
   }catch(e){}
@@ -629,6 +629,11 @@ function addTodo(){const i=document.getElementById("todo-input"),t=i.value.trim(
 function toggleTodo(id){const idx=S.todos.findIndex(x=>x.id===id||x.t===id);if(idx<0)return;S.todos[idx].d=!S.todos[idx].d;sv(S);if(S.todos[idx].d){confetti(document.getElementById("todo-list"));const item=S.todos.splice(idx,1)[0];S.todos.push(item);sv(S);}rTodos();}
 function deleteTodo(id){S.todos=S.todos.filter(x=>!(x.id===id||x.t===id));sv(S);rTodos();}
 let tdDrag=null;
+let cdDrag={};
+function addChecklist(key,inputId,listId){const i=document.getElementById(inputId),t=i.value.trim();if(!t)return;if(!S[key])S[key]=[];const undone=S[key].filter(x=>!x.d);const done=S[key].filter(x=>x.d);S[key]=[{t,d:false},...undone,...done];i.value='';sv(S);rChecklist(key,listId);}
+function toggleChecklist(key,i,el,listId){if(!S[key])S[key]=[];S[key][i].d=!S[key][i].d;sv(S);if(S[key][i].d){confetti(el);const item=S[key].splice(i,1)[0];S[key].push(item);sv(S);}rChecklist(key,listId);}
+function deleteChecklist(key,i,listId){if(!S[key])S[key]=[];S[key].splice(i,1);sv(S);rChecklist(key,listId);}
+function rChecklist(key,listId){if(!S[key])S[key]=[];const el=document.getElementById(listId);if(!el)return;el.innerHTML=S[key].map((t,i)=>`<div class="ti2 ${t.d?'done':''}" draggable="true" data-i="${i}" ondragstart="cdDrag['${key}']=${i}" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(cdDrag['${key}']!=null&&cdDrag['${key}']!==${i}){const a=S['${key}'].splice(cdDrag['${key}'],1)[0];S['${key}'].splice(${i},0,a);cdDrag['${key}']=null;sv(S);rChecklist('${key}','${listId}')}"><span class="tdrag">⠿</span><div class="tck2" onclick="event.stopPropagation();toggleChecklist('${key}',${i},this,'${listId}')"></div><div style="flex:1"><div class="tt">${t.t}</div></div><button class="tdel" onclick="event.stopPropagation();deleteChecklist('${key}',${i},'${listId}')">×</button></div>`).join('');}
 function rTodos(){
   const open=S.todos.filter(x=>!x.d),done=S.todos.filter(x=>x.d);
   const items=[...open,...done];
@@ -652,7 +657,9 @@ function saveL10(key,val){
   },400);
 }
 function loadL10(){
-  try{const d=JSON.parse(localStorage.getItem(L10_KEY))||{};["frog","green","stats"].forEach(k=>{const el=document.getElementById("l10-"+k);if(el&&d[k])el.value=d[k];});}catch(e){}
+  rChecklist('l10Stats','l10-stats-list');
+  rChecklist('l10Frog','l10-frog-list');
+  rChecklist('l10Green','l10-green-list');
 }
 loadL10();
 // ── D1 RECON UPLOADS ─────────────────────────────────────────────
