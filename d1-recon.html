@@ -162,7 +162,10 @@
 <input type="file" id="fi-intake"  class="hidden-file" onchange="handleFileSelect('intake',this)"/>
 <input type="file" id="fi-exam"    class="hidden-file" onchange="handleFileSelect('exam',this)"/>
 <input type="file" id="fi-shs"     class="hidden-file" onchange="handleFileSelect('shs',this)"/>
-<input type="file" id="fi-xrays"   class="hidden-file" onchange="handleFileSelect('xrays',this)"/>
+<input type="file" id="fi-xrays1"  class="hidden-file" onchange="handleFileSelect('xrays1',this)"/>
+<input type="file" id="fi-xrays2"  class="hidden-file" onchange="handleFileSelect('xrays2',this)"/>
+<input type="file" id="fi-xrays3"  class="hidden-file" onchange="handleFileSelect('xrays3',this)"/>
+<input type="file" id="fi-xrays4"  class="hidden-file" onchange="handleFileSelect('xrays4',this)"/>
 
 <script>
 const SB_URL = 'https://nadnplpmgwawuoyggjij.supabase.co';
@@ -174,7 +177,10 @@ const SLOTS = [
   { key:'consult', label:'Consultation Transcript',   owner:'Dr. Stutz', required:true  },
   { key:'exam',    label:'Exam Form',                 owner:'Dr. Stutz', required:true  },
   { key:'shs',     label:'SHS (Spinal Health Score)', owner:'Sabrina',   required:true  },
-  { key:'xrays',   label:'X-rays',                   owner:'Dr. Stutz', required:false },
+  { key:'xrays1',  label:'X-ray 1',                   owner:'Dr. Stutz', required:false },
+  { key:'xrays2',  label:'X-ray 2',                   owner:'Dr. Stutz', required:false },
+  { key:'xrays3',  label:'X-ray 3',                   owner:'Dr. Stutz', required:false },
+  { key:'xrays4',  label:'X-ray 4',                   owner:'Dr. Stutz', required:false },
 ];
 
 let activeCaseId = localStorage.getItem('d1_active_case');
@@ -290,11 +296,12 @@ function renderConsultSlot() {
 }
 
 function updateProgress() {
-  const count = Object.keys(caseFiles).filter(k => k !== 'consult_questions' && k !== 'd1_report').length;
+  const reqTotal = SLOTS.filter(s=>s.required).length;
   const reqDone = SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length;
-  const ready = count >= 4 || reqDone >= 4;
-  document.getElementById('progress-fill').style.width = Math.min(100,Math.round(count/5*100))+'%';
-  document.getElementById('progress-label').textContent = count+' of 5 files uploaded';
+  const xrayCount = SLOTS.filter(s=>s.key.startsWith('xrays')).filter(s=>caseFiles[s.key]).length;
+  const ready = reqDone >= reqTotal;
+  document.getElementById('progress-fill').style.width = Math.min(100,Math.round(reqDone/reqTotal*100))+'%';
+  document.getElementById('progress-label').textContent = reqDone+' of '+reqTotal+' required files uploaded'+(xrayCount>0?' · '+xrayCount+' x-ray'+(xrayCount>1?'s':'')+' added':'');
   document.getElementById('download-wrap').style.display = ready ? '' : 'none';
   if (ready && activeCaseId) sb.from('d1_cases').update({status:'ready'}).eq('id',activeCaseId).then(()=>{});
   refreshReconSection();
@@ -782,9 +789,9 @@ const RECON_SECTIONS = [
 ];
 
 function isCaseReadyForRecon() {
-  const count = Object.keys(caseFiles).filter(k => k !== 'consult_questions' && k !== 'd1_report').length;
+  const reqTotal = SLOTS.filter(s=>s.required).length;
   const reqDone = SLOTS.filter(s=>s.required).filter(s=>caseFiles[s.key]).length;
-  return count >= 4 || reqDone >= 4;
+  return reqDone >= reqTotal;
 }
 
 function renderReconReportSection(row) {
@@ -995,13 +1002,15 @@ async function loadPastCases() {
   const {data:cases,error} = await sb.from('d1_cases').select('*,d1_files(slot_key)').order('created_at',{ascending:false});
   if (error||!cases||!cases.length) { el.innerHTML='<div class="empty-msg">No cases yet.<br>Create a case above to get started.</div>'; return; }
   el.innerHTML='<div class="cases-list">'+cases.map(c=>{
-    const slots = Array.isArray(c.d1_files) ? c.d1_files.filter(f=>f.slot_key!=='consult_questions' && f.slot_key!=='d1_report') : [];
-    const n=slots.length;
+    const REQUIRED_KEYS = ['intake','consult','exam','shs'];
+    const files = Array.isArray(c.d1_files) ? c.d1_files.filter(f=>f.slot_key!=='consult_questions' && f.slot_key!=='d1_report') : [];
+    const n = files.filter(f=>REQUIRED_KEYS.includes(f.slot_key)).length;
+    const xrayCount = files.filter(f=>f.slot_key && f.slot_key.startsWith('xrays')).length;
     const d=c.appointment_date?new Date(c.appointment_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'No date';
     const ready=n>=4; const cur=c.id===activeCaseId;
     return `<div class="case-card${cur?' is-active':''}" onclick="openCase('${c.id}')">
       <div><div class="cc-name">${esc(c.patient_name)}${cur?' <span style="font-size:.7rem;font-family:Inter,sans-serif;font-weight:400;color:var(--muted)">(active)</span>':''}</div><div class="cc-date">${d}</div></div>
-      <div class="cc-right"><div class="cc-count">${n} of 5 files</div><span class="cc-badge ${ready?'badge-ready':'badge-progress'}">${ready?'Ready for Recon':'In Progress'}</span></div>
+      <div class="cc-right"><div class="cc-count">${n} of 4 required${xrayCount>0?' · '+xrayCount+' x-ray'+(xrayCount>1?'s':''):''}</div><span class="cc-badge ${ready?'badge-ready':'badge-progress'}">${ready?'Ready for Recon':'In Progress'}</span></div>
     </div>`;
   }).join('')+'</div>';
 }
