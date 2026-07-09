@@ -78,7 +78,7 @@ export default async (req: Request, context: Context) => {
     const bySlot: Record<string, any> = {};
     (files || []).forEach((f: any) => { bySlot[f.slot_key] = f; });
 
-    const relevantSlots = ["intake", "consult", "exam", "shs", "xrays"];
+    const relevantSlots = ["intake", "consult", "exam", "shs", "xrays1", "xrays2", "xrays3", "xrays4"];
     const contentBlocks: any[] = [];
 
     for (const slot of relevantSlots) {
@@ -86,7 +86,7 @@ export default async (req: Request, context: Context) => {
       if (!f || !f.file_data) continue;
       const decoded = decodeDataUrl(f.file_data);
       if (!decoded) continue;
-      const label = { intake: "INTAKE FORM", consult: "CONSULTATION TRANSCRIPT", exam: "EXAM FORM", shs: "SHS (SPINAL HEALTH SCORE)", xrays: "X-RAYS" }[slot];
+      const label = { intake: "INTAKE FORM", consult: "CONSULTATION TRANSCRIPT", exam: "EXAM FORM", shs: "SHS (SPINAL HEALTH SCORE)", xrays1: "X-RAY 1", xrays2: "X-RAY 2", xrays3: "X-RAY 3", xrays4: "X-RAY 4" }[slot];
 
       if (decoded.mimeType.startsWith("image/")) {
         contentBlocks.push({ type: "text", text: `--- ${label} (image) ---` });
