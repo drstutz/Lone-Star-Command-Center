@@ -635,10 +635,13 @@ function toggleChecklist(key,i,el,listId){if(!S[key])S[key]=[];S[key][i].d=!S[ke
 function deleteChecklist(key,i,listId){if(!S[key])S[key]=[];S[key].splice(i,1);sv(S);rChecklist(key,listId);}
 function rChecklist(key,listId){if(!S[key])S[key]=[];const el=document.getElementById(listId);if(!el)return;el.innerHTML=S[key].map((t,i)=>`<div class="ti2 ${t.d?'done':''}" draggable="true" data-i="${i}" ondragstart="cdDrag['${key}']=${i}" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(cdDrag['${key}']!=null&&cdDrag['${key}']!==${i}){const a=S['${key}'].splice(cdDrag['${key}'],1)[0];S['${key}'].splice(${i},0,a);cdDrag['${key}']=null;sv(S);rChecklist('${key}','${listId}')}"><span class="tdrag">⠿</span><div class="tck2" onclick="event.stopPropagation();toggleChecklist('${key}',${i},this,'${listId}')"></div><div style="flex:1"><div class="tt">${t.t}</div></div><button class="tdel" onclick="event.stopPropagation();deleteChecklist('${key}',${i},'${listId}')">×</button></div>`).join('');}
 function rTodos(){
+  let __needsSave=false;
+  S.todos.forEach(x=>{ if(!x.id){ x.id=Date.now().toString(36)+Math.random().toString(36).slice(2,8); __needsSave=true; } });
+  if(__needsSave) sv(S);
   const open=S.todos.filter(x=>!x.d),done=S.todos.filter(x=>x.d);
   const items=[...open,...done];
   document.getElementById("todo-list").innerHTML=items.map((t,i)=>{
-    const id=t.id||t.t;
+    const id=t.id;
     return `<div class="todo-item${t.d?" done":""}" draggable="true" ondragstart="tdDrag='${id}'" ondragover="event.preventDefault()" ondrop="event.preventDefault();if(tdDrag&&tdDrag!=='${id}'){const ai=S.todos.findIndex(x=>(x.id||x.t)==='${id}');const bi=S.todos.findIndex(x=>(x.id||x.t)===tdDrag);if(ai>=0&&bi>=0){const mv=S.todos.splice(bi,1)[0];S.todos.splice(ai,0,mv);tdDrag=null;sv(S);rTodos();}}"><span style="font-size:16px;color:#aaa;cursor:grab;padding:0 4px;user-select:none;">⣿</span><div class="check-box" onclick="event.stopPropagation();toggleTodo('${id}')">${t.d?"✓":""}</div><div class="check-text">${t.t||t.text}</div><button class="todo-del" onclick="event.stopPropagation();deleteTodo('${id}')">×</button></div>`;
   }).join("");
   document.getElementById("todo-count").textContent=open.length+" open";
