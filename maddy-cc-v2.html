@@ -380,6 +380,15 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 
 
 
+<!-- Q3 EOS ROCKS -->
+<div class="card" data-card-id="card-rocks">
+  <div class="ch"><span class="ct">🪨 Q3 EOS Rocks</span><span class="sm">2026 · Q3</span></div>
+  <div class="cb">
+    <div class="tir"><input class="ti" id="rocks-input" placeholder="Add a rock..." onkeydown="if(event.key==='Enter')addChecklist('rocks','rocks-input','rocks-list')"><button class="tab" onclick="addChecklist('rocks','rocks-input','rocks-list')">+</button></div>
+    <div id="rocks-list"></div>
+  </div>
+</div>
+
 <!-- ADD WIDGET BTN -->
 <div class="card add-widget-btn" id="add-widget-btn" data-card-id="add-widget-btn" onclick="openWidgetModal()">
   <span style="font-size:20px;margin-right:4px;">+</span> Add Widget
@@ -511,7 +520,7 @@ async function pullRemote(){
     S=data.data||{};
     localStorage.setItem(SK,JSON.stringify(S));
     ensureDefaults();
-    rSC();rCountdown();rReachoutLog();rNoShow();rF15();rTD();rSched();loadL10();
+    rSC();rCountdown();rReachoutLog();rNoShow();rF15();rTD();rSched();loadL10();seedAndRenderRocks();
     if(typeof renderAllCWs==='function')renderAllCWs();
     if(typeof applyCardOrder==='function')applyCardOrder();
   }catch(e){}
@@ -856,6 +865,17 @@ function saveL10(key, val){
     }, 1000);
 }
 loadL10();
+function seedAndRenderRocks(){
+  if(!S.rocks){
+    S.rocks=[
+      {t:'Social Media — 5 posts/week',d:false},
+      {t:'Community Outreach — QR code flyer placements weekly',d:false}
+    ];
+    sv(S);
+  }
+  rChecklist('rocks','rocks-list');
+}
+seedAndRenderRocks();
 
 // ── VERSE OF THE DAY ─────────────────────────────────────────────
 const VD=[
