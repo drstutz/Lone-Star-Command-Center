@@ -17,7 +17,8 @@ Return ONLY a single valid JSON object (no markdown fences, no prose before or a
   "examPriority": [
     {"region": "REGION NAME IN CAPS", "tests": [["Test Name", "One-line rationale tied to this patient's presentation"], ["Test Name", "rationale"]]},
     {"region": "REGION NAME IN CAPS", "tests": [["Test Name", "rationale"]]}
-  ]
+  ],
+  "functionalTests": [["Test Name", "rationale"], ["Test Name", "rationale"], ["Test Name", "rationale"]]
 }
 
 Rules for questions — HOW TO WRITE THEM: These are meant to be spoken out loud in a live conversation, not read off a form. Each question must be ONE simple, single-clause ask — never stack two questions together with a dash or "and" (e.g. NOT "Can you pinpoint what triggered this—and does it radiate into your leg?" — instead ask those as two separate short questions, or pick the single more useful one). Keep each question under ~15 words wherever possible. Write in plain, conversational spoken language, not survey/form language. Do not reference "the diagram," "the intake," or "what you noted" — just ask the question directly as if meeting the patient for the first time.
@@ -26,7 +27,11 @@ Rules for questions — CONTENT: each category should have 3-4 questions, tailor
 
 CRITICAL — every question set MUST include at least one emotionally/fear-driven question, not just mechanical/clinical ones. Somewhere in chiefComplaint or functionalImpact, ask something that surfaces what the patient is afraid this turns into, or what they're afraid of losing if it isn't addressed (e.g. "What are you worried this turns into if it doesn't get better?" or "Is there anything this is stopping you from doing that really matters to you?" — tailor the specific fear/stakes to what THIS patient's intake suggests they'd be afraid of losing, such as a sport, their job, playing with their kids, etc). This is not optional — a purely mechanical, clinical question set without any emotional/stakes question is an incomplete result.
 
-Rules for examPriority: choose 3-4 anatomical regions (e.g. CERVICAL / UPPER EXTREMITY, LUMBAR / LOWER EXTREMITY, THORACIC, SHOULDER / UPPER EXTREMITY, HIP / PELVIS, etc.) ordered with the most clinically relevant region FIRST based on the leading differential. Within each region pick 3-5 real, well-known orthopedic/orthopedic-adjacent chiropractic exam tests appropriate to that region and this patient, each with a short rationale connecting it to their presentation.`;
+Rules for examPriority: choose 3-4 anatomical regions (e.g. CERVICAL / UPPER EXTREMITY, LUMBAR / LOWER EXTREMITY, THORACIC, SHOULDER / UPPER EXTREMITY, HIP / PELVIS, etc.) ordered with the most clinically relevant region FIRST based on the leading differential. Within each region pick 3-5 real, well-known orthopedic/orthopedic-adjacent chiropractic exam tests appropriate to that region and this patient, each with a short rationale connecting it to their presentation.
+
+CRITICAL — NEVER include range-of-motion (ROM) assessment as an exam test in examPriority, in any region (no "Cervical ROM", "Lumbar ROM and forward flexion", "Cervical active range of motion", etc). ROM is already captured separately via the SHS (Spinal Health Score) and re-measured at re-exam, so recommending it here is redundant. Focus examPriority entirely on orthopedic/neurological provocation tests, palpation, and special tests — not ROM.
+
+Rules for functionalTests: pick 3-5 functional benchmark tests to re-measure at re-exam, chosen ONLY from tests that are actually relevant to this patient's complaint region and differential — do not default to a generic head-to-toe battery. For example, a patient with an isolated cervical/upper-body complaint and no lower-body involvement should NOT get gait/balance/leg tests like heel walk, toe walk, or single-leg balance; a patient with lower back/lower extremity involvement should. Good options include (choose only what's relevant): grip strength, heel walk, toe walk, squat depth/pain, one-leg balance, or a relevant provocation/functional movement tied to their stated goals (e.g. a golf swing test, a specific lifting motion). Do NOT include generic ROM degree measurements here (no "Cx Flexion ___°" style items) — that's covered by the SHS.`;
 
 export default async (req: Request, context: Context) => {
   if (req.method !== "POST") {
