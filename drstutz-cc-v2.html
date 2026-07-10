@@ -342,41 +342,8 @@ footer{text-align:center;padding:12px;font-size:10px;color:var(--muted);letter-s
 <div class="card" data-card-id="card-rocks">
   <div class="ch"><span class="ct">🪨 Q3 EOS Rocks</span><span class="sm">2026 · Q3</span></div>
   <div class="cb">
-    <div class="rock-item">
-      <div class="rock-num">1</div>
-      <div>
-        <div class="rock-text">Launch D1 Recon workflow — full team trained and running</div>
-        <div class="rock-tag">Operations · Due Sep 30</div>
-      </div>
-    </div>
-    <div class="rock-item">
-      <div class="rock-num">2</div>
-      <div>
-        <div class="rock-text">Hit 100 visits/week for 8 consecutive weeks</div>
-        <div class="rock-tag">Growth · Ongoing</div>
-      </div>
-    </div>
-    <div class="rock-item">
-      <div class="rock-num">3</div>
-      <div>
-        <div class="rock-text">Complete 90-day reactivation campaign with Sabrina</div>
-        <div class="rock-tag">Reactivation · Due Sep 15</div>
-      </div>
-    </div>
-    <div class="rock-item">
-      <div class="rock-num">4</div>
-      <div>
-        <div class="rock-text">Implement new patient financial consultation process</div>
-        <div class="rock-tag">Clinical · Due Aug 31</div>
-      </div>
-    </div>
-    <div class="rock-item">
-      <div class="rock-num">5</div>
-      <div>
-        <div class="rock-text">Review and update all care plan templates</div>
-        <div class="rock-tag">Clinical · Due Sep 1</div>
-      </div>
-    </div>
+    <div class="tir"><input class="ti" id="rocks-input" placeholder="Add a rock..." onkeydown="if(event.key==='Enter')addChecklist('rocks','rocks-input','rocks-list')"><button class="tab" onclick="addChecklist('rocks','rocks-input','rocks-list')">+</button></div>
+    <div id="rocks-list"></div>
   </div>
 </div>
 
@@ -489,7 +456,7 @@ async function pullRemote(){
     S=data.data||{};
     localStorage.setItem(SK,JSON.stringify(S));
     ensureDefaults();
-    rSC();rSched();rTodos();rPulse();loadL10();
+    rSC();rSched();rTodos();rPulse();loadL10();seedAndRenderRocks();
     if(typeof renderAllCWs==='function')renderAllCWs();
     if(typeof applyCardOrder==='function')applyCardOrder();
   }catch(e){}
@@ -665,6 +632,20 @@ function loadL10(){
   rChecklist('l10Green','l10-green-list');
 }
 loadL10();
+function seedAndRenderRocks(){
+  if(!S.rocks){
+    S.rocks=[
+      {t:'Launch D1 Recon workflow — full team trained and running',d:false},
+      {t:'Hit 100 visits/week for 8 consecutive weeks',d:false},
+      {t:'Complete 90-day reactivation campaign with Sabrina',d:false},
+      {t:'Implement new patient financial consultation process',d:false},
+      {t:'Review and update all care plan templates',d:false}
+    ];
+    sv(S);
+  }
+  rChecklist('rocks','rocks-list');
+}
+seedAndRenderRocks();
 // ── D1 RECON UPLOADS ─────────────────────────────────────────────
 const SUPABASE_URL="https://nadnplpmgwawuoyggjij.supabase.co";
 const SUPABASE_KEY="sb_publishable_YrD7ZTpdqk6dTgZ7JrH5dA_TpMNpQVR";
