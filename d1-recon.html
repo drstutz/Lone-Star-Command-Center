@@ -501,6 +501,11 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
         ['Cross-Body Adduction', 'AC joint dysfunction'],
       ]},
     ],
+    functionalTests: [
+      'Grip strength: R ___ / L ___',
+      'Squat depth ___  pain ___/10',
+      'Seated/standing posture transition tolerance',
+    ],
   };
 
   const R = personalized || FALLBACK;
@@ -699,24 +704,16 @@ async function generateAndStoreConsultPDF(patientName, apptDateStr, caseId, inta
     yR += 7;
   }
 
-  benchSection('RANGE OF MOTION');
-  benchRow('Cx Flexion ___°   Extension ___°');
-  benchRow('Cx Rotation  R ___°   L ___°');
-  benchRow('Cx Lat Flex  R ___°   L ___°');
-  benchRow('Lx Flexion ___°   Extension ___°');
-  yR += 3;
-
   benchSection('PAIN SCALE (NRS)');
   benchRow('Current: ___ / 10');
   benchRow('Avg past week: ___ / 10');
   yR += 3;
 
   benchSection('FUNCTIONAL TESTS');
-  benchCheck('One-leg balance  R ___ s   L ___ s');
-  benchCheck('Heel walk:  Normal  /  Compensated');
-  benchCheck('Toe walk:   Normal  /  Compensated');
-  benchCheck('Squat to floor  depth ___  pain ___ /10');
-  benchCheck('Grip strength  R ___  /  L ___');
+  (R.functionalTests && R.functionalTests.length ? R.functionalTests : FALLBACK.functionalTests).forEach(ft => {
+    const label = Array.isArray(ft) ? ft[0] : ft;
+    benchCheck(label);
+  });
   yR += 3;
 
   benchSection('POSTURE OBSERVATION');
