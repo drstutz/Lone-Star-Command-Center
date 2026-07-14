@@ -444,6 +444,27 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 const DASH_ID='drstutz';
 let _pushTimer=null;
 let _dirty=false;
+let _pageEtag=null;
+async function checkForUpdate(){
+  try{
+    const res=await fetch(location.pathname,{cache:'no-store',method:'HEAD'});
+    const et=res.headers.get('etag');
+    if(_pageEtag===null){_pageEtag=et;return;}
+    if(et&&et!==_pageEtag)showUpdateBanner();
+  }catch(e){}
+}
+function showUpdateBanner(){
+  if(document.getElementById('update-banner'))return;
+  const el=document.createElement('div');
+  el.id='update-banner';
+  el.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#1B2A4A;color:#fff;text-align:center;padding:10px;font-size:13px;font-weight:700;z-index:99999;font-family:Inter,sans-serif;cursor:pointer;';
+  el.innerHTML='🔄 A newer version of this dashboard is available — click to refresh';
+  el.onclick=()=>location.reload();
+  document.body.appendChild(el);
+}
+setInterval(checkForUpdate,5*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkForUpdate();});
+checkForUpdate();
 function pushRemote(s){
   clearTimeout(_pushTimer);
   _pushTimer=setTimeout(()=>{ doPushSync(s,0); },400);
