@@ -913,11 +913,14 @@ function saveL10(key, val){
 }
 loadL10();
 function seedAndRenderRocks(){
-  if(!S.rocks){
-    S.rocks=[
-      {t:'Social Media — 5 posts/week',d:false},
-      {t:'Community Outreach — QR code flyer placements weekly',d:false}
-    ];
+  if(!S.rocksSeeded){
+    S.rocksSeeded=true;
+    if(!S.rocks||!S.rocks.length){
+      S.rocks=[
+        {t:'Social Media — 5 posts/week',d:false},
+        {t:'Community Outreach — QR code flyer placements weekly',d:false}
+      ];
+    }
     sv(S);
   }
   rChecklist('rocks','rocks-list');
