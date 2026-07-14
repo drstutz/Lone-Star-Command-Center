@@ -499,7 +499,7 @@ tick();setInterval(tick,20000);
 const SK="maddy_cc_v4";
 function gwk(){const d=new Date(),dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1),m=new Date(d);m.setDate(diff);return m.getFullYear()+"-"+(m.getMonth()+1)+"-"+m.getDate();}
 function ld(){try{return JSON.parse(localStorage.getItem(SK))||{};}catch{return{};}}
-function sv(s){localStorage.setItem(SK,JSON.stringify(s));pushRemote(s);}
+function sv(s){_dirty=true;localStorage.setItem(SK,JSON.stringify(s));pushRemote(s);}
 
 // ── CLOUD SYNC (Supabase) ───────────────────────────────────────
 const SB_URL='https://nadnplpmgwawuoyggjij.supabase.co';
@@ -507,13 +507,39 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const DASH_ID='maddy';
 let _pushTimer=null;
+let _dirty=false;
 function pushRemote(s){
+  clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(()=>{ doPushSync(s,0); },400);
+}
+async function doPushSync(s,attempt){
+  try{
+    const {error} = await sb.from('dashboard_state').upsert({id:DASH_ID,data:s,updated_at:new Date().toISOString()});
+    if(error) throw error;
+    _dirty=false;
+    const w=document.getElementById('sync-warning-banner'); if(w) w.remove();
+  }catch(e){
+    console.error('Sync push failed:',e);
+    if(attempt<6){ setTimeout(()=>doPushSync(s,attempt+1), Math.min(30000,1000*Math.pow(2,attempt))); }
+    else{ showSyncWarning(); }
+  }
+}
+function showSyncWarning(){
+  if(document.getElementById('sync-warning-banner')) return;
+  const el=document.createElement('div');
+  el.id='sync-warning-banner';
+  el.style.cssText='position:fixed;top:0;left:0;right:0;background:#C8102E;color:#fff;text-align:center;padding:9px;font-size:13px;font-weight:700;z-index:99999;font-family:Inter,sans-serif;';
+  el.textContent='⚠️ Changes are not syncing — check your internet connection. Keep this tab open; your changes are saved locally and will sync once connection is restored.';
+  document.body.prepend(el);
+}
+function __unusedOldPushRemote(s){
   clearTimeout(_pushTimer);
   _pushTimer=setTimeout(async()=>{
     try{await sb.from('dashboard_state').upsert({id:DASH_ID,data:s,updated_at:new Date().toISOString()});}catch(e){}
   },400);
 }
 async function pullRemote(){
+  if(_dirty) return;
   try{
     const {data,error}=await sb.from('dashboard_state').select('data').eq('id',DASH_ID).single();
     if(error||!data)return;
