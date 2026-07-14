@@ -65,7 +65,7 @@
     .badge-req{background:#fff0f0;color:var(--red);}
     .badge-opt{background:#f0f3ff;color:#4a5f8a;}
     .slot-owner{font-size:0.71rem;color:var(--muted);margin-top:2px;}
-    .slot-file{font-size:0.77rem;color:var(--green);font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;}
+    .slot-file-link{cursor:pointer;color:var(--a2);text-decoration:underline;}.slot-file-link:hover{color:var(--a1);}.slot-file{font-size:0.77rem;color:var(--green);font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;}
     .slot-ts{font-size:0.67rem;color:var(--muted);margin-top:1px;}
     .prep-link{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:0.78rem;font-weight:600;color:var(--navy);text-decoration:none;padding:4px 11px;border:1.5px solid var(--navy);border-radius:6px;background:#eef2ff;transition:all .15s;}
     .prep-link:hover{background:#dce4ff;}
@@ -263,7 +263,7 @@ function renderSlots() {
       <div class="slot-info">
         <div class="slot-title">${s.label}<span class="badge ${s.required?'badge-req':'badge-opt'}">${s.required?'Required':'Optional'}</span></div>
         <div class="slot-owner">Usually uploaded by ${s.owner}</div>
-        ${done?`<div class="slot-file">📎 ${esc(f.file_name)}</div><div class="slot-ts">Uploaded ${ts}</div>`:''}
+        ${done?`<div class="slot-file slot-file-link" onclick="openSlotFile('${s.key}',event)" title="Click to view">📄 ${esc(f.file_name)} →</div><div class="slot-ts">Uploaded ${ts}</div>`:''}
         ${prepHtml}
       </div>
       <button class="btn ${done?'btn-replace':'btn-upload'}" onclick="triggerUpload('${s.key}')">${done?'Replace':'Upload'}</button>
@@ -399,6 +399,19 @@ function textToDataUrl(text) {
 }
 
 /* ── CONSULT PDF: OPEN ── */
+function openSlotFile(key, e) {
+  if (e) e.stopPropagation();
+  const f = caseFiles[key];
+  if (!f || !f.file_data) { alert('File not available.'); return; }
+  try {
+    const b64 = f.file_data.split(',')[1];
+    const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+    const blob = new Blob([bytes], {type: f.file_type || 'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(()=>URL.revokeObjectURL(url), 120000);
+  } catch(err) { alert('Could not open file: '+err.message); }
+}
 function openConsultPDF(e) {
   e.preventDefault();
   const f = caseFiles['consult_questions'];
