@@ -660,8 +660,6 @@ function rTodos(){
   }).join("");
   document.getElementById("todo-count").textContent=open.length+" open";
 }
-const SD_DEFAULT=[{"t": "SLC Tickets", "d": false, "s": "Recovered"}, {"t": "Jackson Hole Tickets", "d": false, "s": "Recovered"}, {"t": "New combination of codes", "d": false, "s": "Recovered"}, {"t": "Text Video Trigger - Patient Journey", "d": false, "s": "Recovered"}, {"t": "Prep for 1-on-1s", "d": false, "s": "Recovered"}, {"t": "Create new Google Sheet for Maddy", "d": false, "s": "Recovered"}, {"t": "Career Paths", "d": false, "s": "Recovered"}, {"t": "AEO/GEO/SEO Game Plan", "d": false, "s": "Recovered"}, {"t": "Upload D1 Recon instructions on Maddy and Sabrina's computers", "d": false, "s": "Recovered"}, {"t": "Bible Verse of the Day in Command Center — Maddy controls it", "d": false, "s": "Recovered"}, {"t": "Allow Maddy and Sabrina to make edits to their Command Centers from their own computers", "d": false, "s": "Recovered"}, {"t": "Write deliverable so their Claude can make Command Center adjustments from their computers", "d": false, "s": "Recovered"}, {"t": "Add Forward Phones to Maddy's Final 15", "d": false, "s": "Recovered"}, {"t": "New items on to-do list should add to the top, not the bottom", "d": false, "s": "Recovered"}, {"t": "Schedule a full session with Claude (circle back on what that was)", "d": false, "s": "Recovered"}, {"t": "Pull Empire Resources", "d": false, "s": "Recovered"}, {"t": "Add Ongoing section to Command Center (e.g. Monday Morning CEO Report)", "d": false, "s": "Recovered"}, {"t": "Improve D1 objective/performative measuring sticks for re-exams", "d": false, "s": "Recovered"}, {"t": "Ask Sabrina's Claude how to improve patient journey/experience", "d": false, "s": "Recovered"}, {"t": "Update Claude Cowork on all 3 computers", "d": false, "s": "Recovered"}];
-if(!S.todos||!S.todos.length)S.todos=SD_DEFAULT;
 rTodos();
 
 // ── L10 PREP ────────────────────────────────────────────────────────────────
@@ -680,14 +678,17 @@ function loadL10(){
 }
 loadL10();
 function seedAndRenderRocks(){
-  if(!S.rocks){
-    S.rocks=[
-      {t:'Launch D1 Recon workflow — full team trained and running',d:false},
-      {t:'Hit 100 visits/week for 8 consecutive weeks',d:false},
-      {t:'Complete 90-day reactivation campaign with Sabrina',d:false},
-      {t:'Implement new patient financial consultation process',d:false},
-      {t:'Review and update all care plan templates',d:false}
-    ];
+  if(!S.rocksSeeded){
+    S.rocksSeeded=true;
+    if(!S.rocks||!S.rocks.length){
+      S.rocks=[
+        {t:'Launch D1 Recon workflow — full team trained and running',d:false},
+        {t:'Hit 100 visits/week for 8 consecutive weeks',d:false},
+        {t:'Complete 90-day reactivation campaign with Sabrina',d:false},
+        {t:'Implement new patient financial consultation process',d:false},
+        {t:'Review and update all care plan templates',d:false}
+      ];
+    }
     sv(S);
   }
   rChecklist('rocks','rocks-list');
