@@ -488,11 +488,14 @@ const _l10t={};
 function saveL10(key,val){clearTimeout(_l10t[key]);_l10t[key]=setTimeout(()=>{try{const d=JSON.parse(localStorage.getItem('sabrina_l10_v1'))||{};d[key]=val;localStorage.setItem('sabrina_l10_v1',JSON.stringify(d));const s=document.getElementById('l10-'+key+'-saved');if(s){s.style.display='block';setTimeout(()=>s.style.display='none',2000);}}catch(e){}},600);}
 loadL10();
 function seedAndRenderRocks(){
-  if(!S.rocks){
-    S.rocks=[
-      {t:'Patient Journey SOP',d:false},
-      {t:'PI Case Management',d:false}
-    ];
+  if(!S.rocksSeeded){
+    S.rocksSeeded=true;
+    if(!S.rocks||!S.rocks.length){
+      S.rocks=[
+        {t:'Patient Journey SOP',d:false},
+        {t:'PI Case Management',d:false}
+      ];
+    }
     sv(S);
   }
   rChecklist('rocks','rocks-list');
